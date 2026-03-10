@@ -87,6 +87,7 @@ export function generateRhythmQuestion(difficulty: Difficulty): Question {
     durations: p.durations,
     keys: p.durations.map(() => ['c/4']),
     vexDurations: p.durations.map(d => toVexDuration(d)),
+    tripletGroups: p.tripletGroups,
   }));
 
   return {
@@ -101,6 +102,7 @@ export function generateRhythmQuestion(difficulty: Difficulty): Question {
       keys: correct.durations.map(() => ['c/4']),
       vexDurations: correct.durations.map(d => toVexDuration(d)),
       timeSignature: '4/4',
+      tripletGroups: correct.tripletGroups,
     },
   };
 }

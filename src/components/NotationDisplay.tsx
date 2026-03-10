@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, Stave, StaveNote, Voice, Formatter, Dot } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, Dot, Tuplet } from 'vexflow';
 import type { NoteData, ExerciseType } from '../types';
 
 interface Props {
@@ -50,6 +50,17 @@ export default function NotationDisplay({ noteData, exerciseType, revealed }: Pr
         return note;
       });
 
+      // Build tuplets from tripletGroups
+      const tuplets: Tuplet[] = [];
+      if (noteData.tripletGroups) {
+        for (const [start, count] of noteData.tripletGroups) {
+          const tupletNotes = vexNotes.slice(start, start + count);
+          if (tupletNotes.length === count) {
+            tuplets.push(new Tuplet(tupletNotes, { numNotes: 3, notesOccupied: 2 }));
+          }
+        }
+      }
+
       const voice = new Voice({
         numBeats: 4,
         beatValue: 4,
@@ -58,6 +69,11 @@ export default function NotationDisplay({ noteData, exerciseType, revealed }: Pr
       voice.addTickables(vexNotes);
       new Formatter().joinVoices([voice]).format([voice], width - 80);
       voice.draw(context, stave);
+
+      // Draw tuplet brackets
+      for (const tuplet of tuplets) {
+        tuplet.setContext(context).draw();
+      }
     } catch (e) {
       console.warn('VexFlow rendering error:', e);
     }

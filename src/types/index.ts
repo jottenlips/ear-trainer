@@ -20,8 +20,9 @@ export interface ChordQuality {
 }
 
 export interface RhythmPattern {
-  durations: string[]; // VexFlow duration strings: 'q', 'h', '8', 'w', etc.
+  durations: string[]; // VexFlow duration strings: 'q', 'h', '8', 'w', '8t' (triplet eighth), 'qt' (triplet quarter)
   label: string;
+  tripletGroups?: [number, number][]; // [startIndex, count] pairs for triplet groups
 }
 
 export interface RhythmChoice {
@@ -29,6 +30,7 @@ export interface RhythmChoice {
   durations: string[];
   keys: string[][];
   vexDurations: string[];
+  tripletGroups?: [number, number][];
 }
 
 export interface Question {
@@ -52,6 +54,7 @@ export interface NoteData {
   keys?: string[][];     // for VexFlow rendering (array of note groups)
   vexDurations?: string[];
   timeSignature?: string;
+  tripletGroups?: [number, number][];
 }
 
 export interface ScoreState {

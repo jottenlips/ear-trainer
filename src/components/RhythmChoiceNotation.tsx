@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, Stave, StaveNote, Voice, Formatter, Dot } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, Dot, Tuplet } from 'vexflow';
 import type { RhythmChoice } from '../types';
 
 interface Props {
@@ -44,6 +44,17 @@ export default function RhythmChoiceNotation({ choice }: Props) {
         return note;
       });
 
+      // Build tuplets from tripletGroups
+      const tuplets: Tuplet[] = [];
+      if (choice.tripletGroups) {
+        for (const [start, count] of choice.tripletGroups) {
+          const tupletNotes = vexNotes.slice(start, start + count);
+          if (tupletNotes.length === count) {
+            tuplets.push(new Tuplet(tupletNotes, { numNotes: 3, notesOccupied: 2 }));
+          }
+        }
+      }
+
       const voice = new Voice({
         numBeats: 4,
         beatValue: 4,
@@ -52,6 +63,11 @@ export default function RhythmChoiceNotation({ choice }: Props) {
       voice.addTickables(vexNotes);
       new Formatter().joinVoices([voice]).format([voice], width - 60);
       voice.draw(context, stave);
+
+      // Draw tuplet brackets
+      for (const tuplet of tuplets) {
+        tuplet.setContext(context).draw();
+      }
     } catch (e) {
       console.warn('VexFlow rendering error:', e);
     }

@@ -142,22 +142,50 @@ export function getRhythmPatterns(difficulty: Difficulty): RhythmPattern[] {
 
   const medium: RhythmPattern[] = [
     ...easy,
+    // 1 bar with eighths
     { durations: ['8', '8', 'q', 'q', 'q'], label: '2 Eighths + 3 Quarters' },
-    { durations: ['q', '8', '8', 'q', 'q'], label: 'Quarter 2 Eighths 2 Quarters' },
-    { durations: ['q', 'q', '8', '8', 'q'], label: '2 Quarters 2 Eighths Quarter' },
     { durations: ['8', '8', '8', '8', 'q', 'q'], label: '4 Eighths + 2 Quarters' },
-    { durations: ['q', 'q', 'q', '8', '8'], label: '3 Quarters + 2 Eighths' },
     { durations: ['hd', 'q'], label: 'Dotted Half + Quarter' },
+    { durations: ['qd', '8', 'q', 'q'], label: 'Dotted Quarter Eighth 2 Quarters' },
+    // 1 bar with triplets
+    { durations: ['8t', '8t', '8t', 'q', 'q', 'q'], label: 'Triplet + 3 Quarters', tripletGroups: [[0, 3]] },
+    { durations: ['q', '8t', '8t', '8t', 'q', 'q'], label: 'Quarter Triplet 2 Quarters', tripletGroups: [[1, 3]] },
+    { durations: ['q', 'q', '8t', '8t', '8t', 'q'], label: '2 Quarters Triplet Quarter', tripletGroups: [[2, 3]] },
+    { durations: ['8t', '8t', '8t', '8t', '8t', '8t', 'h'], label: '2 Triplets + Half', tripletGroups: [[0, 3], [3, 3]] },
+    // 2 bar patterns (8 beats)
+    { durations: ['h', 'q', 'q', 'q', '8', '8', 'q'], label: 'Half Quarter Quarter | Quarter 2 Eighths Quarter' },
+    { durations: ['q', 'q', 'q', 'q', 'h', '8', '8', 'q'], label: '4 Quarters | Half 2 Eighths Quarter' },
+    { durations: ['8', '8', 'q', 'h', 'q', 'q', '8', '8'], label: '2 Eighths Quarter Half | Quarter Quarter 2 Eighths' },
+    { durations: ['qd', '8', 'h', '8', '8', '8', '8', 'q'], label: 'Dotted-Q Eighth Half | 4 Eighths Quarter' },
+    { durations: ['q', 'q', '8', '8', '8', '8', 'w'], label: '2 Quarters 4 Eighths | Whole' },
+    { durations: ['8', '8', '8', '8', '8', '8', '8', '8', 'q', 'q', 'h'], label: '8 Eighths | 2 Quarters Half' },
+    { durations: ['hd', 'q', 'q', 'qd', '8', 'q'], label: 'Dotted-Half Quarter | Quarter Dotted-Q Eighth Quarter' },
+    // 2 bar with triplets
+    { durations: ['8t', '8t', '8t', 'q', 'h', 'q', 'q', 'q', 'q'], label: 'Triplet Quarter Half | 4 Quarters', tripletGroups: [[0, 3]] },
+    { durations: ['q', 'q', 'q', 'q', '8t', '8t', '8t', '8t', '8t', '8t', 'h'], label: '4 Quarters | 2 Triplets Half', tripletGroups: [[4, 3], [7, 3]] },
   ];
 
   const hard: RhythmPattern[] = [
-    ...medium,
-    { durations: ['8', '8', '8', '8', '8', '8', '8', '8'], label: '8 Eighth Notes' },
-    { durations: ['qd', '8', 'q', 'q'], label: 'Dotted Quarter Eighth 2 Quarters' },
-    { durations: ['8', '8', '8', '8', 'h'], label: '4 Eighths + Half' },
-    { durations: ['16', '16', '16', '16', 'q', 'q', 'q'], label: '4 Sixteenths + 3 Quarters' },
-    { durations: ['q', '16', '16', '16', '16', 'h'], label: 'Quarter 4 Sixteenths Half' },
-    { durations: ['8', '16', '16', '8', '8', 'q', 'q'], label: 'Eighth 2 16ths 2 Eighths 2 Quarters' },
+    // 2 bar patterns with sixteenths, triplets, and syncopation
+    { durations: ['16', '16', '16', '16', 'q', 'q', 'q', '8', '8', '8', '8', 'h'], label: '4 16ths 3 Quarters | 4 Eighths Half' },
+    { durations: ['qd', '8', '8', '8', 'q', '16', '16', '16', '16', 'q', 'h'], label: 'Dotted-Q Eighth 2 Eighths Quarter | 4 16ths Quarter Half' },
+    { durations: ['8', '16', '16', '8', '8', 'q', 'q', '8', '16', '16', '8', '8', 'h'], label: 'Eighth 2-16ths 2 Eighths 2 Quarters | Eighth 2-16ths 2 Eighths Half' },
+    { durations: ['16', '16', '8', '16', '16', '8', 'q', 'q', 'q', 'q', 'q', 'q'], label: '2-16ths Eighth 2-16ths Eighth Quarter | 4 Quarters' },
+    { durations: ['q', '8', '8', '16', '16', '16', '16', 'q', 'h', 'q', 'q'], label: 'Quarter 2 Eighths 4 16ths Quarter | Half 2 Quarters' },
+    // 2 bar with triplets + sixteenths
+    { durations: ['8t', '8t', '8t', '16', '16', '16', '16', 'h', 'q', 'q', 'q', 'q'], label: 'Triplet 4 16ths Half | 4 Quarters', tripletGroups: [[0, 3]] },
+    { durations: ['q', '8t', '8t', '8t', '8t', '8t', '8t', 'q', '16', '16', '16', '16', 'h'], label: 'Quarter 2 Triplets Quarter | 4 16ths Half', tripletGroups: [[1, 3], [4, 3]] },
+    { durations: ['8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', 'q', 'q', 'h'], label: '3 Triplets | Quarter Quarter Half', tripletGroups: [[0, 3], [3, 3], [6, 3]] },
+    { durations: ['16', '16', '16', '16', '8t', '8t', '8t', 'q', 'q', '8t', '8t', '8t', 'h'], label: '4 16ths Triplet 2 Quarters | Triplet Half', tripletGroups: [[4, 3], [9, 3]] },
+    // Quarter-note triplets (3 in the space of 2 beats)
+    { durations: ['qt', 'qt', 'qt', 'h', 'q', 'q', 'q', 'q'], label: 'Quarter Triplet Half | 4 Quarters', tripletGroups: [[0, 3]] },
+    { durations: ['q', 'q', 'qt', 'qt', 'qt', '8', '8', '8', '8', 'h'], label: '2 Quarters Q-Triplet | 4 Eighths Half', tripletGroups: [[2, 3]] },
+    // 3 bar patterns (12 beats)
+    { durations: ['8t', '8t', '8t', 'q', 'q', 'q', '8', '8', '8', '8', 'q', 'q', 'h', 'h'], label: 'Triplet 3 Quarters | 4 Eighths 2 Quarters | 2 Halves', tripletGroups: [[0, 3]] },
+    { durations: ['16', '16', '16', '16', '8', '8', 'h', '8t', '8t', '8t', '8t', '8t', '8t', 'h', 'w'], label: '4 16ths 2 Eighths Half | 2 Triplets Half | Whole', tripletGroups: [[7, 3], [10, 3]] },
+    { durations: ['8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', 'w'], label: '4 Triplet Groups | Whole', tripletGroups: [[0, 3], [3, 3], [6, 3], [9, 3]] },
+    { durations: ['qt', 'qt', 'qt', 'qt', 'qt', 'qt', 'q', 'q', 'q', 'q', '16', '16', '16', '16', 'hd'], label: '2 Q-Triplets | 4 Quarters | 4 16ths Dotted-Half', tripletGroups: [[0, 3], [3, 3]] },
+    { durations: ['8', '16', '16', '8t', '8t', '8t', 'q', 'q', '16', '16', '16', '16', '8t', '8t', '8t', 'h', 'q', 'q', 'h'], label: 'Eighth 2-16ths Triplet 2Q | 4-16ths Triplet Half | 2 Quarters Half', tripletGroups: [[3, 3], [12, 3]] },
   ];
 
   switch (difficulty) {
@@ -178,6 +206,8 @@ export function durationToBeats(dur: string): number {
     case '8d': return 0.75;
     case '8': return 0.5;
     case '16': return 0.25;
+    case 'qt': return 2 / 3;   // quarter-note triplet (3 in 2 beats)
+    case '8t': return 1 / 3;   // eighth-note triplet (3 in 1 beat)
     default: return 1;
   }
 }
@@ -193,6 +223,8 @@ export function toVexDuration(dur: string): string {
     case '8d': return '8d';
     case '8': return '8';
     case '16': return '16';
+    case 'qt': return 'q';  // rendered as quarter, grouped as triplet
+    case '8t': return '8';  // rendered as eighth, grouped as triplet
     default: return 'q';
   }
 }
