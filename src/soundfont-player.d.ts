@@ -22,12 +22,15 @@ declare module 'soundfont-player' {
     gain?: number;
   }
 
-  function instrument(
-    ac: AudioContext,
-    name: InstrumentName,
-    options?: InstrumentOptions
-  ): Promise<Player>;
+  namespace Soundfont {
+    export type Player = import('soundfont-player').Player;
+    export type InstrumentName = import('soundfont-player').InstrumentName;
+    export function instrument(
+      ac: AudioContext,
+      name: InstrumentName,
+      options?: InstrumentOptions
+    ): Promise<Player>;
+  }
 
-  export default { instrument };
-  export { Player, InstrumentName, SoundFontType, InstrumentOptions, PlayOptions };
+  export = Soundfont;
 }

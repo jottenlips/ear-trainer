@@ -292,7 +292,7 @@ export function getSecDomChordName(secDom: SecondaryDominantInfo, rootMidi: numb
 }
 
 export function buildSecDomProgression(
-  difficulty: Difficulty,
+  _difficulty: Difficulty,
   secDom: SecondaryDominantInfo,
   rootMidi: number
 ): SecDomProgression {
