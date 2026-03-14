@@ -662,9 +662,39 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .difficulty-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 1rem;
+    margin: 0;
+    z-index: 10;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .difficulty-section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+
   .difficulty-buttons {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-difficulty {
+    flex: 1;
+    padding: 0.7rem 1rem;
+  }
+
+  .difficulty-info {
+    max-width: 100%;
   }
 
   .hero h1 {
@@ -686,24 +716,24 @@ body {
 }
 
 .btn-playing-changes {
-  background: linear-gradient(135deg, var(--bg-card), var(--bg-hover));
-  color: var(--text);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 2rem;
-  font-size: 1rem;
+  display: inline-block;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
-  width: 100%;
-  max-width: 500px;
+  text-decoration: none;
 }
 
 .btn-playing-changes:hover {
   border-color: var(--primary);
-  background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(108, 99, 255, 0.05));
-  transform: translateY(-2px);
+  color: var(--text);
+  background: var(--bg-hover);
 }
 
 /* === Playing Changes Page === */

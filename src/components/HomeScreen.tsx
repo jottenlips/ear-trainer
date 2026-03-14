@@ -75,7 +75,7 @@ export default function HomeScreen({ instrument }: Props) {
 
       <div className="playing-changes-link">
         <Link to="/playing-changes" className="btn btn-playing-changes">
-          Playing Changes — Theory & Playable Examples
+          Playing Changes
         </Link>
       </div>
 
