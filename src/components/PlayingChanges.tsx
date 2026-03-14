@@ -12,6 +12,7 @@ import {
   playProgression,
   playProgressionWithExtensions,
 } from '../utils/audio';
+import CircleOfFifths from './CircleOfFifths';
 
 interface Props {
   instrument: InstrumentName;
@@ -444,6 +445,16 @@ export default function PlayingChanges({ instrument }: Props) {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Circle of Fifths */}
+      <section className="pc-section">
+        <h2>The Circle</h2>
+        <p className="pc-muted">
+          Secondary dominants resolve clockwise (down a fifth). Tritone subs sit across the circle
+          and resolve down a half step. Click any arrow to hear the full progression.
+        </p>
+        <CircleOfFifths instrument={instrument} />
       </section>
 
     </div>

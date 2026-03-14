@@ -1042,3 +1042,70 @@ body {
   font-family: inherit;
   font-weight: 600;
 }
+
+/* === Circle of Fifths === */
+.cof-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.cof-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+}
+
+.cof-key-label {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.cof-key-label strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.cof-reset-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cof-reset-btn:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.cof-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.cof-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cof-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
