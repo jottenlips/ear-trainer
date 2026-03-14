@@ -6,15 +6,19 @@ All examples in the key of C major.
 
 ## The Chart
 
-| Chord (by root) | V7/X label | Example | Sound | Extensions | Notes |
+| Chord (by root) | Label | Example | Sound | Extensions | Notes |
 |---|---|---|---|---|---|
 | II7 | V7/V | D7 → G | **Mixolydian *or* Lydian Dominant** | 9, 11, 13 *or* 9, #11, 13 | Randomly chosen each question — both work over II7 |
 | I7 | V7/IV | C7 → F | **Mixolydian *or* Lydian Dominant** | 9, 11, 13 *or* 9, #11, 13 | Same dual personality; natural 11 = target root but works in mixo context |
 | VI7 | V7/ii | A7 → Dm | Altered | b9, #9, #11, b13 | natural 11 clashes with 3rd |
 | III7 | V7/vi | E7 → Am | Altered | b9, #9, #11, b13 | natural 11 clashes with 3rd |
 | VII7 | V7/iii | B7 → Em | Altered | b9, #9, #11, b13 | natural 11 clashes with 3rd |
-| bII7 | SubV7/I | Db7 → C | Lydian Dominant | 9, #11, 13 | — |
+| bII7 | SubV7/I | Db7 → C | Lydian Dominant | 9, #11, 13 | Tritone sub of V7 |
 | IV7 | V7/bVII | F7 → Bb | Mixolydian | 9, 11, 13 | — |
+| bV7 | SubV7/IV | Gb7 → F | Whole Tone | 9, #11, b13 | Tritone sub of C7 (V7/IV) — whole tone scale, no P5, replaced by #5/b13 |
+| bIII7 | SubV7/ii | Eb7 → Dm | Lydian Dominant | 9, #11, 13 | Tritone sub of A7 (V7/ii) |
+| bVI7 | SubV7/V | Ab7 → G | Lydian Dominant | 9, #11, 13 | Tritone sub of D7 (V7/V) |
+| bVII7 | SubV7/vi | Bb7 → Am | Lydian Dominant | 9, #11, 13 | Tritone sub of E7 (V7/vi) |
 
 ### Extension intervals (semitones above chord root)
 
@@ -63,18 +67,33 @@ These two secondary dominants live in a dual world. Both Mixolydian and Lydian D
 
 ---
 
-### Lydian Dominant — SubV7/I (Db7 → C)
+### Lydian Dominant — Tritone Substitutions
 
-**The sound:** The definitive tritone substitute color. The #11 gives it a lifted quality that signals "I'm a sub, not a regular dominant."
+All tritone subs share the same lydian dominant color (9, #11, 13). The #11 is the telltale — it signals "I'm a sub, not a regular dominant." Each tritone sub replaces an existing secondary dominant, resolving down by half step instead of down by fifth.
 
-**Why 9, #11, 13:** The lydian dominant scale (4th mode of melodic minor) raises the 11th to avoid the clash with the major 3rd while keeping the 9 and 13 natural. Db lydian dominant and G altered share the same melodic minor parent scale (Ab melodic minor).
+#### SubV7/I (bII7) — Db7 → C
 
-**Why this is the tritone sub sound:** Db7 resolving to C has its 3rd (F) and 7th (Cb/B) forming the same tritone as G7 (B and F). The #11 of Db7 is G — the root of the V7 it's substituting for. The extensions of a lydian dominant tritone sub mirror the altered dominant they replace.
+**The sound:** The definitive tritone substitute color. Db7 resolving to C has its 3rd (F) and 7th (Cb/B) forming the same tritone as G7 (B and F). The #11 of Db7 is G — the root of the V7 it's substituting for.
 
-**Real progressions:**
+**Why this is the tritone sub sound:** Db lydian dominant and G altered share the same melodic minor parent scale (Ab melodic minor). The extensions of a lydian dominant tritone sub mirror the altered dominant they replace.
+
+#### SubV7/ii (bIII7) — Eb7 → Dm
+
+**The sound:** The tritone sub of A7 (V7/ii). Where A7 altered pulls to Dm with dark tension, Eb7 lydian dominant slides down a half step to the same target with a bright, lifted color. Eb's #11 is A — the root of the V7/ii it replaces.
+
+#### SubV7/V (bVI7) — Ab7 → G
+
+**The sound:** The tritone sub of D7 (V7/V). Instead of D7 dropping a fifth to G, Ab7 slides down a half step. Ab's #11 is D — the root of the dominant it substitutes for. This is common in jazz reharmonization: replace II7 → V with bVI7 → V for a more chromatic bass line.
+
+#### SubV7/vi (bVII7) — Bb7 → Am
+
+**The sound:** The tritone sub of E7 (V7/vi). Bb7 resolves down a half step to Am with the same lydian dominant extensions. Bb's #11 is E — the root of the V7/vi it replaces. The backdoor ii-V (Fm7 → Bb7 → Am or Cmaj7) uses this chord.
+
+**Real progressions (all tritone subs):**
 - *Girl From Ipanema* — the Db7 in the bridge is a SubV7, pure lydian dominant color
 - *Lady Bird* (Tadd Dameron) — uses tritone subs with lydian dominant extensions
 - Any backdoor ii-V: Fm7 → Bb7 → Cmaj7, where Bb7 (bVII7) has a lydian dominant quality
+- Chromatic bass line reharmonizations — replacing V7/X with SubV7/X creates half-step root motion
 
 ---
 
@@ -96,13 +115,31 @@ These two secondary dominants live in a dual world. Both Mixolydian and Lydian D
 
 ---
 
+### Whole Tone — SubV7/IV (bV7) — Gb7 → F
+
+**The sound:** Shimmery, symmetrical, floating in space. The whole tone scale has no half steps — every note is equidistant — so there's no strong pull in any direction. This is the most harmonically ambiguous secondary dominant.
+
+**Why it's a tritone sub:** Gb7 is the tritone sub of C7 (V7/IV), resolving down a half step to F (IV). Like all tritone subs it shares its tritone (Bb/E) with the dominant it replaces. But where C7 → F can sound mixolydian or lydian dominant, the whole tone color on Gb7 gives the approach a completely different character.
+
+**Why 9, #11, b13:** The whole tone scale (Gb, Ab, Bb, C, D, E) naturally produces a dom7 chord with exactly these extensions. There's no perfect 5th — it's replaced by #5/b13 (D), giving the chord an augmented quality. The #11 (C) is the tonic of the parent key.
+
+**Why NOT altered or lydian dominant:** Altered would give b9 and #9, which imply a minor-key resolution. Lydian dominant would give natural 13, but the whole tone scale produces b13 (#5). The combination of natural 9 + #11 + b13 is uniquely whole tone — it doesn't come from any mode of melodic or harmonic minor.
+
+**Real progressions:**
+- *Monk's Dream* (Thelonious Monk) — whole tone runs over dominant chords
+- *Juju* (Wayne Shorter) — whole tone color over suspended dominants
+- *Voiles* (Debussy) — the original whole tone sound in Western music
+
+---
+
 ## Why the "Sound Category" Matters for Ear Training
 
 The goal isn't to memorize which extensions go where — it's to hear the *color*:
 
 1. **Mixolydian** sounds like home turned dominant. It's the blues. No surprise notes.
-2. **Lydian Dominant** sounds like it's floating above the key. Bright but not inside.
+2. **Lydian Dominant** sounds like it's floating above the key. Bright but not inside. The tritone sub sound.
 3. **Altered** sounds like maximum tension. Dark, chromatic, pulling hard toward resolution.
+4. **Whole Tone** sounds shimmery and symmetrical. Directionless — floating with no strong pull.
 
 When you toggle extensions on in the trainer, listen for these colors on the secondary dominant chord. The arpeggio plays the chord tones first (root, 3, 5, b7) then the extension color tones above. The extensions are what distinguish a V7/V from a V7/vi — the chord structure (dom7) is the same, but the *color on top* tells your ear where it wants to go.
 
@@ -116,5 +153,6 @@ The first four chords establish the key firmly in your ear. Then the secondary d
 - Hears mixolydian and thinks "this is just a dominant sound, probably going somewhere nearby"
 - Hears lydian dominant and thinks "this is floating, maybe a tritone sub"
 - Hears altered and thinks "this is dark and tense, resolving to a minor chord"
+- Hears whole tone and thinks "this is shimmery and unresolved, dissolving rather than resolving"
 
 That instinct — color → destination — is what the extension playback mode trains.

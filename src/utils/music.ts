@@ -418,12 +418,12 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
       sound: 'Mixolydian',
       extensions: [2, 5, 9],               // 9, 11, 13
     },
-    // bV7 (whole tone dominant) — Gb7 in key of C resolves to Bdim
+    // bV7 (whole tone dominant) — Gb7 in key of C, tritone sub resolves to F
     {
-      label: 'bV7 (V7/vii°)',
-      dominantIntervals: [6, 10, 13, 16],  // Gb Bb Db Fb → resolves to Bdim
-      targetIntervals: [11, 14, 17],         // B D F
-      targetLabel: 'vii°',
+      label: 'SubV7/IV (bV7)',
+      dominantIntervals: [6, 10, 13, 16],  // Gb Bb Db Fb → tritone sub of C7 → F
+      targetIntervals: [5, 9, 12],           // F A C
+      targetLabel: 'IV',
       sound: 'Whole Tone',
       extensions: [2, 6, 8],               // 9, #11, b13
     },
