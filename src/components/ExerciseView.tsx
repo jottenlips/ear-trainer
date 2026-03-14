@@ -14,7 +14,7 @@ function extensionName(semitones: number): string {
   return EXTENSION_NAMES[semitones] ?? `+${semitones}`;
 }
 
-const SOUND_CHOICES = ['Altered', 'Mixolydian', 'Lydian Dominant'];
+const SOUND_CHOICES = ['Altered', 'Mixolydian', 'Lydian Dominant', 'Whole Tone'];
 
 interface Props {
   instrument: InstrumentName;

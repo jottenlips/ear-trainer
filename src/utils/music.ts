@@ -418,6 +418,43 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
       sound: 'Mixolydian',
       extensions: [2, 5, 9],               // 9, 11, 13
     },
+    // bV7 (whole tone dominant) — Gb7 in key of C resolves to Bdim
+    {
+      label: 'bV7 (V7/vii°)',
+      dominantIntervals: [6, 10, 13, 16],  // Gb Bb Db Fb → resolves to Bdim
+      targetIntervals: [11, 14, 17],         // B D F
+      targetLabel: 'vii°',
+      sound: 'Whole Tone',
+      extensions: [2, 6, 8],               // 9, #11, b13
+    },
+    // Tritone sub secondary dominants — all Lydian Dominant, resolve down a half step
+    // SubV7/ii (bIII7) — Eb7 in key of C resolves to Dm
+    {
+      label: 'SubV7/ii (bIII7)',
+      dominantIntervals: [3, 7, 10, 13],   // Eb G Bb Db → tritone sub of A7 → Dm
+      targetIntervals: [2, 5, 9],            // D F A
+      targetLabel: 'ii',
+      sound: 'Lydian Dominant',
+      extensions: [2, 6, 9],               // 9, #11, 13
+    },
+    // SubV7/V (bVI7) — Ab7 in key of C resolves to G
+    {
+      label: 'SubV7/V (bVI7)',
+      dominantIntervals: [8, 12, 15, 18],  // Ab C Eb Gb → tritone sub of D7 → G
+      targetIntervals: [7, 11, 14],          // G B D
+      targetLabel: 'V',
+      sound: 'Lydian Dominant',
+      extensions: [2, 6, 9],               // 9, #11, 13
+    },
+    // SubV7/vi (bVII7) — Bb7 in key of C resolves to Am
+    {
+      label: 'SubV7/vi (bVII7)',
+      dominantIntervals: [10, 14, 17, 20], // Bb D F Ab → tritone sub of E7 → Am
+      targetIntervals: [9, 12, 16],          // A C E
+      targetLabel: 'vi',
+      sound: 'Lydian Dominant',
+      extensions: [2, 6, 9],               // 9, #11, 13
+    },
   ];
 
   switch (difficulty) {
@@ -470,8 +507,9 @@ export function buildSecDomProgression(
   const targetRootName = ROOT_NOTES[targetChord[0] % 12];
   // Determine target chord quality from intervals
   const targetIntervalSet = targetChord.map(n => (n - targetChord[0]) % 12);
-  const isTargetMinor = targetIntervalSet.includes(3);
-  const targetChordName = `${targetRootName}${isTargetMinor ? 'm' : ''}`;
+  const isTargetDim = targetIntervalSet.includes(3) && targetIntervalSet.includes(6);
+  const isTargetMinor = !isTargetDim && targetIntervalSet.includes(3);
+  const targetChordName = `${targetRootName}${isTargetDim ? '°' : isTargetMinor ? 'm' : ''}`;
 
   // Compute chord names for ii7 and V7
   const iiRootName = ROOT_NOTES[(rootMidi + 2) % 12];

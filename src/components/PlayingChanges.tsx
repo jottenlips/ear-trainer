@@ -92,6 +92,24 @@ const SOUND_GROUPS: SoundGroup[] = [
     ],
     secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Altered'),
   },
+  {
+    sound: 'Whole Tone',
+    color: '#9575cd',
+    description: 'Shimmery, symmetrical, floating in space. Every note a whole step apart — no half steps means no strong pull in any direction.',
+    vibe: 'Thelonious Monk and Wayne Shorter territory. The whole tone scale dissolves tonal gravity.',
+    extensions: '9, #11, b13',
+    whyText: [
+      'The whole tone scale (C, D, E, F#, G#, A#) naturally produces a dom7 chord with exactly 9, #11, and b13.',
+      'There\'s no perfect 5th — it\'s replaced by #5/b13, giving the chord an augmented quality.',
+      'The symmetry of the scale means every note is equidistant, creating that directionless, dreamlike color.',
+    ],
+    realProgressions: [
+      { title: 'Monk\'s Dream', description: 'Thelonious Monk — whole tone runs over dominant chords' },
+      { title: 'Juju', description: 'Wayne Shorter — whole tone color over suspended dominants' },
+      { title: 'Debussy', description: 'Voiles — the original whole tone sound in Western music' },
+    ],
+    secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Whole Tone'),
+  },
 ];
 
 // Also include the "dual personality" chords (V7/V and V7/IV have altSound)
@@ -230,6 +248,9 @@ export default function PlayingChanges({ instrument }: Props) {
           <div className="pc-color-item" style={{ borderColor: '#e57373' }}>
             <strong style={{ color: '#e57373' }}>Altered</strong> — sounds like maximum tension. Dark, chromatic, pulling hard toward resolution.
           </div>
+          <div className="pc-color-item" style={{ borderColor: '#9575cd' }}>
+            <strong style={{ color: '#9575cd' }}>Whole Tone</strong> — shimmery and symmetrical. Floating with no strong pull in any direction.
+          </div>
         </div>
         <p className="pc-muted" style={{ marginTop: '1rem' }}>
           The chord structure (dom7) is the same for all secondary dominants — the <em>color on top</em> tells
@@ -251,6 +272,7 @@ export default function PlayingChanges({ instrument }: Props) {
           {ALL_SEC_DOMS.map(secDom => {
             const soundColor = secDom.sound === 'Altered' ? '#e57373'
               : secDom.sound === 'Lydian Dominant' ? '#ffb74d'
+              : secDom.sound === 'Whole Tone' ? '#9575cd'
               : '#4db6ac';
             return (
               <div key={secDom.label} className="pc-chart-row">
