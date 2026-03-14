@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import type { Difficulty, ExerciseType, InstrumentName, Question, ScoreState } from '../types';
 import { generateQuestion } from '../utils/questions';
@@ -16,13 +17,14 @@ function extensionName(semitones: number): string {
 const SOUND_CHOICES = ['Altered', 'Mixolydian', 'Lydian Dominant'];
 
 interface Props {
-  exerciseType: ExerciseType;
-  difficulty: Difficulty;
   instrument: InstrumentName;
-  onBack: () => void;
 }
 
-export default function ExerciseView({ exerciseType, difficulty, instrument, onBack }: Props) {
+export default function ExerciseView({ instrument }: Props) {
+  const { type, difficulty: diffParam } = useParams<{ type: string; difficulty: string }>();
+  const navigate = useNavigate();
+  const exerciseType = type as ExerciseType;
+  const difficulty = diffParam as Difficulty;
   const [question, setQuestion] = useState<Question | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -31,7 +33,7 @@ export default function ExerciseView({ exerciseType, difficulty, instrument, onB
   const [isPlaying, setIsPlaying] = useState(false);
   const [firstTry, setFirstTry] = useState(true);
   const [showExtensions, setShowExtensions] = useState(exerciseType === 'secondary-dominants');
-  const [showArpeggio, setShowArpeggio] = useState(false);
+  const [showArpeggio, setShowArpeggio] = useState(exerciseType === 'secondary-dominants');
   const [rhythmBpm, setRhythmBpm] = useState(100);
   const [metronome, setMetronome] = useState(true);
   const [sheetMusic, setSheetMusic] = useState(false);
@@ -183,7 +185,7 @@ export default function ExerciseView({ exerciseType, difficulty, instrument, onB
   return (
     <div className="exercise-view">
       <div className="exercise-header">
-        <button className="btn btn-secondary" onClick={onBack}>
+        <button className="btn btn-secondary" onClick={() => navigate('/')}>
           ← Back
         </button>
         <div className="score-display">

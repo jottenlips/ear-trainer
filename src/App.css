@@ -670,4 +670,345 @@ body {
   .hero h1 {
     font-size: 2rem;
   }
+
+  .pc-chart {
+    font-size: 0.75rem;
+  }
+
+  .pc-dual-compare {
+    flex-direction: column;
+  }
+}
+
+/* === Playing Changes Link on Home === */
+.playing-changes-link {
+  margin: 1.5rem 0;
+}
+
+.btn-playing-changes {
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-hover));
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+  max-width: 500px;
+}
+
+.btn-playing-changes:hover {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(108, 99, 255, 0.05));
+  transform: translateY(-2px);
+}
+
+/* === Playing Changes Page === */
+.playing-changes {
+  padding-bottom: 3rem;
+}
+
+.pc-header {
+  margin-bottom: 2rem;
+}
+
+.pc-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 1rem 0 0.5rem;
+}
+
+.pc-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.pc-section {
+  margin: 2.5rem 0;
+}
+
+.pc-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.pc-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--text);
+}
+
+.pc-muted {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Extension reference table */
+.pc-ext-table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.pc-ext-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.pc-ext-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.pc-ext-semi {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Sound sections */
+.pc-sound-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.pc-extensions-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.pc-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.pc-vibe {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Why section */
+.pc-why {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0;
+}
+
+.pc-why p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0.4rem 0;
+}
+
+/* Example cards */
+.pc-examples {
+  margin: 0.75rem 0;
+}
+
+.pc-example-card {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0;
+}
+
+.pc-example-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.pc-example-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Georgia', serif;
+}
+
+.pc-example-chord {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: 'Georgia', serif;
+}
+
+.pc-example-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.btn-play-example {
+  background: var(--bg-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-play-example:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.15);
+}
+
+.btn-play-example:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pc-example-ext-list {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.pc-ext-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0f1219;
+}
+
+/* Dual personality */
+.pc-dual-card {
+  border-color: #ab9df5;
+}
+
+.pc-dual-compare {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.pc-dual-side {
+  flex: 1;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pc-dual-side h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Real progressions */
+.pc-real {
+  margin: 0.75rem 0;
+}
+
+.pc-real-item {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pc-real-item:last-child {
+  border-bottom: none;
+}
+
+.pc-real-item strong {
+  color: var(--text);
+}
+
+/* Color summary */
+.pc-color-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.pc-color-item {
+  background: var(--bg-card);
+  border-left: 4px solid var(--border);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+}
+
+/* The chart */
+.pc-chart {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.pc-chart-header {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 1.2fr 1.3fr 1.2fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-hover);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.pc-chart-row {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 1.2fr 1.3fr 1.2fr;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  align-items: center;
+}
+
+.pc-chart-row:last-child {
+  border-bottom: none;
+}
+
+.pc-chart-cell {
+  font-family: 'Georgia', serif;
+}
+
+.pc-chart-alt {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.pc-chart-exts {
+  font-family: inherit;
+  font-weight: 600;
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Difficulty, ExerciseType, InstrumentName } from '../types';
 import { ensureAudioContext } from '../utils/audio';
 
 interface Props {
   instrument: InstrumentName;
-  onStart: (type: ExerciseType, difficulty: Difficulty) => void;
 }
 
 const EXERCISES: { type: ExerciseType; title: string; description: string; icon: string }[] = [
@@ -40,13 +40,14 @@ const DIFFICULTIES: { value: Difficulty; label: string; color: string }[] = [
   { value: 'hard', label: 'Hard', color: '#f44336' },
 ];
 
-export default function HomeScreen({ instrument, onStart }: Props) {
+export default function HomeScreen({ instrument }: Props) {
   const [selectedType, setSelectedType] = useState<ExerciseType | null>(null);
+  const navigate = useNavigate();
 
   const handleStart = async (difficulty: Difficulty) => {
     await ensureAudioContext();
     if (selectedType) {
-      onStart(selectedType, difficulty);
+      navigate(`/exercise/${selectedType}/${difficulty}`);
     }
   };
 
@@ -70,6 +71,12 @@ export default function HomeScreen({ instrument, onStart }: Props) {
             <p>{ex.description}</p>
           </button>
         ))}
+      </div>
+
+      <div className="playing-changes-link">
+        <Link to="/playing-changes" className="btn btn-playing-changes">
+          Playing Changes — Theory & Playable Examples
+        </Link>
       </div>
 
       {selectedType && (
