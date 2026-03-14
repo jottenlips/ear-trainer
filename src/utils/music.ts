@@ -129,6 +129,25 @@ export function pickRandom<T>(arr: T[], n: number): T[] {
   return shuffle(arr).slice(0, n);
 }
 
+// Generate polyrhythm patterns from [A, B] pairs: A notes against B notes
+function makePolyrhythms(pairs: [number, number][]): RhythmPattern[] {
+  return pairs.map(([a, b]) => {
+    // A against B: play over B beats; A = top row, B = bottom row
+    const totalBeats = b;
+    const aHits = Array.from({ length: a }, (_, i) => i * b / a);     // the A (top)
+    const bHits = Array.from({ length: b }, (_, i) => i);             // the B (bottom)
+    return {
+      durations: ['q', 'q', 'q', 'q'],
+      label: `groove-${a}:${b}`,
+      grooveName: `${a}:${b} Polyrhythm`,
+      layers: [
+        { hits: aHits, totalBeats },
+        { hits: bHits, totalBeats },
+      ],
+    };
+  });
+}
+
 // Rhythm patterns by difficulty
 export function getRhythmPatterns(difficulty: Difficulty): RhythmPattern[] {
   const easy: RhythmPattern[] = [
@@ -141,51 +160,123 @@ export function getRhythmPatterns(difficulty: Difficulty): RhythmPattern[] {
   ];
 
   const medium: RhythmPattern[] = [
-    ...easy,
     // 1 bar with eighths
     { durations: ['8', '8', 'q', 'q', 'q'], label: '2 Eighths + 3 Quarters' },
     { durations: ['8', '8', '8', '8', 'q', 'q'], label: '4 Eighths + 2 Quarters' },
     { durations: ['hd', 'q'], label: 'Dotted Half + Quarter' },
     { durations: ['qd', '8', 'q', 'q'], label: 'Dotted Quarter Eighth 2 Quarters' },
+    { durations: ['8', '8', '8', '8', '8', '8', '8', '8'], label: '8 Eighth Notes' },
     // 1 bar with triplets
     { durations: ['8t', '8t', '8t', 'q', 'q', 'q'], label: 'Triplet + 3 Quarters', tripletGroups: [[0, 3]] },
     { durations: ['q', '8t', '8t', '8t', 'q', 'q'], label: 'Quarter Triplet 2 Quarters', tripletGroups: [[1, 3]] },
-    { durations: ['q', 'q', '8t', '8t', '8t', 'q'], label: '2 Quarters Triplet Quarter', tripletGroups: [[2, 3]] },
     { durations: ['8t', '8t', '8t', '8t', '8t', '8t', 'h'], label: '2 Triplets + Half', tripletGroups: [[0, 3], [3, 3]] },
-    // 2 bar patterns (8 beats)
-    { durations: ['h', 'q', 'q', 'q', '8', '8', 'q'], label: 'Half Quarter Quarter | Quarter 2 Eighths Quarter' },
-    { durations: ['q', 'q', 'q', 'q', 'h', '8', '8', 'q'], label: '4 Quarters | Half 2 Eighths Quarter' },
-    { durations: ['8', '8', 'q', 'h', 'q', 'q', '8', '8'], label: '2 Eighths Quarter Half | Quarter Quarter 2 Eighths' },
-    { durations: ['qd', '8', 'h', '8', '8', '8', '8', 'q'], label: 'Dotted-Q Eighth Half | 4 Eighths Quarter' },
-    { durations: ['q', 'q', '8', '8', '8', '8', 'w'], label: '2 Quarters 4 Eighths | Whole' },
-    { durations: ['8', '8', '8', '8', '8', '8', '8', '8', 'q', 'q', 'h'], label: '8 Eighths | 2 Quarters Half' },
-    { durations: ['hd', 'q', 'q', 'qd', '8', 'q'], label: 'Dotted-Half Quarter | Quarter Dotted-Q Eighth Quarter' },
-    // 2 bar with triplets
-    { durations: ['8t', '8t', '8t', 'q', 'h', 'q', 'q', 'q', 'q'], label: 'Triplet Quarter Half | 4 Quarters', tripletGroups: [[0, 3]] },
-    { durations: ['q', 'q', 'q', 'q', '8t', '8t', '8t', '8t', '8t', '8t', 'h'], label: '4 Quarters | 2 Triplets Half', tripletGroups: [[4, 3], [7, 3]] },
+    // Grooves & polyrhythms (3 voices: kick/low, snare/mid, hi-hat/high)
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-rock',
+      grooveName: 'Rock Beat',
+      layers: [
+        { hits: [0, 2], totalBeats: 4 },                                           // kick
+        { hits: [1, 3], totalBeats: 4 },                                           // snare
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], totalBeats: 4 },               // hi-hat 8ths
+      ],
+    },
+    ...makePolyrhythms([
+      [3, 2], [2, 3], [3, 4], [4, 3],
+    ]),
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-shuffle',
+      grooveName: 'Shuffle',
+      layers: [
+        { hits: [0, 2], totalBeats: 4 },                                           // kick
+        { hits: [1, 3], totalBeats: 4 },                                           // snare
+        { hits: [0, 2/3, 1, 1+2/3, 2, 2+2/3, 3, 3+2/3], totalBeats: 4 },        // shuffle ride
+      ],
+    },
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-bossa',
+      grooveName: 'Bossa Nova',
+      layers: [
+        { hits: [0, 3, 4, 6], totalBeats: 8 },                                    // bass
+        { hits: [0, 1.5, 3, 4.5, 6], totalBeats: 8 },                            // cross-stick
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5], totalBeats: 8 }, // hi-hat
+      ],
+    },
   ];
 
   const hard: RhythmPattern[] = [
-    // 2 bar patterns with sixteenths, triplets, and syncopation
-    { durations: ['16', '16', '16', '16', 'q', 'q', 'q', '8', '8', '8', '8', 'h'], label: '4 16ths 3 Quarters | 4 Eighths Half' },
-    { durations: ['qd', '8', '8', '8', 'q', '16', '16', '16', '16', 'q', 'h'], label: 'Dotted-Q Eighth 2 Eighths Quarter | 4 16ths Quarter Half' },
-    { durations: ['8', '16', '16', '8', '8', 'q', 'q', '8', '16', '16', '8', '8', 'h'], label: 'Eighth 2-16ths 2 Eighths 2 Quarters | Eighth 2-16ths 2 Eighths Half' },
-    { durations: ['16', '16', '8', '16', '16', '8', 'q', 'q', 'q', 'q', 'q', 'q'], label: '2-16ths Eighth 2-16ths Eighth Quarter | 4 Quarters' },
-    { durations: ['q', '8', '8', '16', '16', '16', '16', 'q', 'h', 'q', 'q'], label: 'Quarter 2 Eighths 4 16ths Quarter | Half 2 Quarters' },
-    // 2 bar with triplets + sixteenths
-    { durations: ['8t', '8t', '8t', '16', '16', '16', '16', 'h', 'q', 'q', 'q', 'q'], label: 'Triplet 4 16ths Half | 4 Quarters', tripletGroups: [[0, 3]] },
-    { durations: ['q', '8t', '8t', '8t', '8t', '8t', '8t', 'q', '16', '16', '16', '16', 'h'], label: 'Quarter 2 Triplets Quarter | 4 16ths Half', tripletGroups: [[1, 3], [4, 3]] },
-    { durations: ['8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', 'q', 'q', 'h'], label: '3 Triplets | Quarter Quarter Half', tripletGroups: [[0, 3], [3, 3], [6, 3]] },
-    { durations: ['16', '16', '16', '16', '8t', '8t', '8t', 'q', 'q', '8t', '8t', '8t', 'h'], label: '4 16ths Triplet 2 Quarters | Triplet Half', tripletGroups: [[4, 3], [9, 3]] },
-    // Quarter-note triplets (3 in the space of 2 beats)
-    { durations: ['qt', 'qt', 'qt', 'h', 'q', 'q', 'q', 'q'], label: 'Quarter Triplet Half | 4 Quarters', tripletGroups: [[0, 3]] },
-    { durations: ['q', 'q', 'qt', 'qt', 'qt', '8', '8', '8', '8', 'h'], label: '2 Quarters Q-Triplet | 4 Eighths Half', tripletGroups: [[2, 3]] },
-    // 3 bar patterns (12 beats)
-    { durations: ['8t', '8t', '8t', 'q', 'q', 'q', '8', '8', '8', '8', 'q', 'q', 'h', 'h'], label: 'Triplet 3 Quarters | 4 Eighths 2 Quarters | 2 Halves', tripletGroups: [[0, 3]] },
-    { durations: ['16', '16', '16', '16', '8', '8', 'h', '8t', '8t', '8t', '8t', '8t', '8t', 'h', 'w'], label: '4 16ths 2 Eighths Half | 2 Triplets Half | Whole', tripletGroups: [[7, 3], [10, 3]] },
-    { durations: ['8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', '8t', 'w'], label: '4 Triplet Groups | Whole', tripletGroups: [[0, 3], [3, 3], [6, 3], [9, 3]] },
-    { durations: ['qt', 'qt', 'qt', 'qt', 'qt', 'qt', 'q', 'q', 'q', 'q', '16', '16', '16', '16', 'hd'], label: '2 Q-Triplets | 4 Quarters | 4 16ths Dotted-Half', tripletGroups: [[0, 3], [3, 3]] },
-    { durations: ['8', '16', '16', '8t', '8t', '8t', 'q', 'q', '16', '16', '16', '16', '8t', '8t', '8t', 'h', 'q', 'q', 'h'], label: 'Eighth 2-16ths Triplet 2Q | 4-16ths Triplet Half | 2 Quarters Half', tripletGroups: [[3, 3], [12, 3]] },
+    // 1 bar syncopation
+    { durations: ['16', '16', '16', '16', 'q', 'h'], label: '4 16ths Quarter Half' },
+    { durations: ['qd', '8', '16', '16', '16', '16', 'q'], label: 'Dotted-Q Eighth 4 16ths Quarter' },
+    { durations: ['8', '16', '16', '8', '8', 'q', 'q'], label: 'Eighth 2-16ths 2 Eighths 2 Quarters' },
+    // 1 bar with triplets + sixteenths
+    { durations: ['8t', '8t', '8t', '16', '16', '16', '16', 'h'], label: 'Triplet 4 16ths Half', tripletGroups: [[0, 3]] },
+    { durations: ['qt', 'qt', 'qt', 'h'], label: 'Quarter Triplet + Half', tripletGroups: [[0, 3]] },
+    // Polyrhythms (2 voices — all common combinations up to 9)
+    ...makePolyrhythms([
+      // x against 2
+      [3, 2], [5, 2], [7, 2], [9, 2],
+      // x against 3
+      [2, 3], [4, 3], [5, 3], [7, 3], [8, 3], [9, 3],
+      // x against 4
+      [3, 4], [5, 4], [6, 4], [7, 4], [9, 4],
+      // x against 5
+      [2, 5], [3, 5], [4, 5], [6, 5], [7, 5], [8, 5], [9, 5],
+      // x against 6
+      [5, 6], [7, 6],
+      // x against 7
+      [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [8, 7], [9, 7],
+      // x against 8
+      [3, 8], [5, 8], [7, 8], [9, 8],
+      // x against 9
+      [2, 9], [4, 9], [5, 9], [7, 9], [8, 9],
+    ]),
+    // Clave patterns (3 voices: clave, bass, hi-hat)
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-son32',
+      grooveName: 'Son Clave 3-2',
+      layers: [
+        { hits: [0, 3, 4, 6], totalBeats: 8 },                                    // bass (tumbao)
+        { hits: [0, 1.5, 3, 5, 6], totalBeats: 8 },                              // clave
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5], totalBeats: 8 }, // hi-hat
+      ],
+    },
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-son23',
+      grooveName: 'Son Clave 2-3',
+      layers: [
+        { hits: [0, 3, 4, 6], totalBeats: 8 },                                    // bass
+        { hits: [1, 2, 4, 5.5, 7], totalBeats: 8 },                              // clave
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5], totalBeats: 8 }, // hi-hat
+      ],
+    },
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-rumba',
+      grooveName: 'Rumba Clave',
+      layers: [
+        { hits: [0, 3, 4, 6], totalBeats: 8 },                                    // bass
+        { hits: [0, 1.5, 3.5, 5, 6], totalBeats: 8 },                            // clave
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5], totalBeats: 8 }, // hi-hat
+      ],
+    },
+    // Grooves (3 voices)
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-samba',
+      grooveName: 'Samba',
+      layers: [
+        { hits: [0, 1.5, 3, 4, 5.5, 7], totalBeats: 8 },                         // surdo
+        { hits: [0, 1, 2, 2.5, 3, 4, 5, 6, 6.5, 7], totalBeats: 8 },            // agogo
+        { hits: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5], totalBeats: 8 }, // tamborim
+      ],
+    },
+    {
+      durations: ['q', 'q', 'q', 'q'], label: 'groove-afrocuban',
+      grooveName: 'Afro-Cuban 6/8',
+      layers: [
+        { hits: [0, 1.5, 3], totalBeats: 4 },                                     // low bell
+        { hits: [0, 1, 1.5, 2.5, 3], totalBeats: 4 },                            // mid bell
+        { hits: [0, 0.67, 1, 1.5, 2.17, 2.67, 3, 3.5], totalBeats: 4 },         // high bell
+      ],
+    },
   ];
 
   switch (difficulty) {
@@ -193,6 +284,12 @@ export function getRhythmPatterns(difficulty: Difficulty): RhythmPattern[] {
     case 'medium': return medium;
     case 'hard': return hard;
   }
+}
+
+// Get all groove names available at a difficulty (includes lower difficulties)
+export function getGrooveNames(difficulty: Difficulty): string[] {
+  const all = getRhythmPatterns(difficulty);
+  return all.filter(p => p.grooveName).map(p => p.grooveName!);
 }
 
 // Convert VexFlow duration to beat count for Tone.js playback
@@ -234,11 +331,17 @@ export function toVexDuration(dur: string): string {
 // A secondary dominant is a dominant 7th chord that resolves to a
 // diatonic chord other than the tonic. E.g. V7/V resolves to V.
 
+export type SecDomSound = 'Altered' | 'Lydian Dominant' | 'Mixolydian' | 'Whole Tone' | 'Rainbow';
+
 export interface SecondaryDominantInfo {
   label: string;           // e.g. "V7/ii"
   dominantIntervals: number[]; // semitones from key root for the dom7 chord
   targetIntervals: number[];   // semitones from key root for the resolution chord
   targetLabel: string;     // e.g. "ii" or "IV"
+  sound: SecDomSound;
+  extensions: number[];    // semitones above chord root for color tones (e.g. b9=1, 9=2, #9=3, 11=5, #11=6, b13=8, 13=9)
+  altSound?: SecDomSound;  // optional alternate sound (randomly chosen at question time)
+  altExtensions?: number[];
 }
 
 // All secondary dominants in a major key (semitones relative to root)
@@ -250,18 +353,28 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
       dominantIntervals: [2, 6, 9, 12],   // D F# A C in key of C → resolves to G
       targetIntervals: [7, 11, 14],         // G B D
       targetLabel: 'V',
+      sound: 'Mixolydian',
+      extensions: [2, 5, 9],               // 9, 11, 13
+      altSound: 'Lydian Dominant',
+      altExtensions: [2, 6, 9],            // 9, #11, 13
     },
     {
       label: 'V7/IV',
       dominantIntervals: [0, 4, 7, 10],   // C E G Bb → resolves to F
       targetIntervals: [5, 9, 12],          // F A C
       targetLabel: 'IV',
+      sound: 'Mixolydian',
+      extensions: [2, 5, 9],               // 9, 11, 13
+      altSound: 'Lydian Dominant',
+      altExtensions: [2, 6, 9],            // 9, #11, 13
     },
     {
       label: 'V7/ii',
       dominantIntervals: [9, 13, 16, 19],  // A C# E G → resolves to Dm
       targetIntervals: [2, 5, 9],           // D F A
       targetLabel: 'ii',
+      sound: 'Altered',
+      extensions: [1, 3, 6, 8],            // b9, #9, #11, b13
     },
   ];
 
@@ -272,12 +385,16 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
       dominantIntervals: [4, 8, 11, 14],   // E G# B D → resolves to Am
       targetIntervals: [9, 12, 16],          // A C E
       targetLabel: 'vi',
+      sound: 'Altered',
+      extensions: [1, 3, 6, 8],            // b9, #9, #11, b13
     },
     {
       label: 'V7/iii',
       dominantIntervals: [11, 15, 18, 21], // B D# F# A → resolves to Em
       targetIntervals: [4, 7, 11],           // E G B
       targetLabel: 'iii',
+      sound: 'Altered',
+      extensions: [1, 3, 6, 8],            // b9, #9, #11, b13
     },
   ];
 
@@ -289,13 +406,17 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
       dominantIntervals: [1, 5, 8, 11],    // Db F Ab Cb → tritone sub resolves to C
       targetIntervals: [0, 4, 7],            // C E G
       targetLabel: 'I',
+      sound: 'Lydian Dominant',
+      extensions: [2, 6, 9],               // 9, #11, 13
     },
-    // V7/bVII (mixolydian area)
+    // V7/bVII — F7 in key of C resolves to Bb
     {
       label: 'V7/bVII',
-      dominantIntervals: [7, 11, 14, 17],   // G B D F → resolves to Bb
+      dominantIntervals: [5, 9, 12, 15],   // F A C Eb → resolves to Bb
       targetIntervals: [10, 14, 17],         // Bb D F
       targetLabel: 'bVII',
+      sound: 'Mixolydian',
+      extensions: [2, 5, 9],               // 9, 11, 13
     },
   ];
 
@@ -310,9 +431,12 @@ export function getSecondaryDominants(difficulty: Difficulty): SecondaryDominant
 export interface SecDomProgression {
   chords: number[][];   // each chord as midi note array
   labels: string[];     // chord symbols for display
+  chordNames: string[]; // actual chord names for all chords
   secDomIndex: number;  // which chord is the secondary dominant
   secDomChordName: string;  // e.g. "D7"
   targetChordName: string;  // e.g. "G"
+  secDomExtensions: number[];  // extension intervals (semitones above chord root)
+  secDomSound: SecDomSound;
 }
 
 const ROOT_NOTES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -349,16 +473,31 @@ export function buildSecDomProgression(
   const isTargetMinor = targetIntervalSet.includes(3);
   const targetChordName = `${targetRootName}${isTargetMinor ? 'm' : ''}`;
 
+  // Compute chord names for ii7 and V7
+  const iiRootName = ROOT_NOTES[(rootMidi + 2) % 12];
+  const VRootName = ROOT_NOTES[(rootMidi + 7) % 12];
+
+  // Randomly pick between primary and alternate sound/extensions if available
+  const useAlt = secDom.altSound && secDom.altExtensions && Math.random() < 0.5;
+  const chosenSound = useAlt ? secDom.altSound! : secDom.sound;
+  const chosenExtensions = useAlt ? secDom.altExtensions! : secDom.extensions;
+
   // Progression: Imaj7 → ii7 → V7 → Imaj7 → [SecDom] → [Target]
   return {
     chords: [Imaj7, ii7, V7, Imaj7, secDomChord, targetChord],
     labels: [
-      `${rootName}maj7`, `ii7`, `V7`, `${rootName}maj7`,
+      `Imaj7`, `ii7`, `V7`, `Imaj7`,
       secDom.label, secDom.targetLabel,
+    ],
+    chordNames: [
+      `${rootName}maj7`, `${iiRootName}m7`, `${VRootName}7`, `${rootName}maj7`,
+      `${secDomRootName}7`, targetChordName,
     ],
     secDomIndex: 4,
     secDomChordName: `${secDomRootName}7`,
     targetChordName,
+    secDomExtensions: chosenExtensions,
+    secDomSound: chosenSound,
   };
 }
 

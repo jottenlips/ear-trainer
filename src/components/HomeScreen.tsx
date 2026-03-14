@@ -105,8 +105,8 @@ export default function HomeScreen({ instrument, onStart }: Props) {
             {selectedType === 'rhythm' && (
               <>
                 <p><strong>Easy:</strong> Whole, half, and quarter notes</p>
-                <p><strong>Medium:</strong> + Eighth notes and dotted rhythms</p>
-                <p><strong>Hard:</strong> + Sixteenth notes and complex patterns</p>
+                <p><strong>Medium:</strong> Eighths, triplets, dotted rhythms + grooves (Rock, Shuffle, Bossa Nova, 3:2)</p>
+                <p><strong>Hard:</strong> 16ths, syncopation + polyrhythms (3:4, 4:3) and claves (Son, Rumba, Samba, Afro-Cuban)</p>
               </>
             )}
             {selectedType === 'secondary-dominants' && (

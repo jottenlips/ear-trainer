@@ -19,10 +19,17 @@ export interface ChordQuality {
   abbreviation: string;
 }
 
+export interface PolyLayer {
+  hits: number[];       // beat positions (0-indexed)
+  totalBeats: number;
+}
+
 export interface RhythmPattern {
   durations: string[]; // VexFlow duration strings: 'q', 'h', '8', 'w', '8t' (triplet eighth), 'qt' (triplet quarter)
   label: string;
   tripletGroups?: [number, number][]; // [startIndex, count] pairs for triplet groups
+  grooveName?: string;     // named groove/polyrhythm (e.g. "Bossa Nova", "3:4 Polyrhythm")
+  layers?: PolyLayer[];    // multi-voice playback for polyrhythms/grooves
 }
 
 export interface RhythmChoice {
@@ -31,6 +38,8 @@ export interface RhythmChoice {
   keys: string[][];
   vexDurations: string[];
   tripletGroups?: [number, number][];
+  grooveName?: string;
+  layers?: PolyLayer[];
 }
 
 export interface Question {
@@ -42,10 +51,15 @@ export interface Question {
   rhythmChoices?: RhythmChoice[];
   progressionChords?: number[][];  // midi note arrays for chord progression
   progressionLabels?: string[];    // chord symbol labels
+  progressionChordNames?: string[];  // actual chord names for all chords in progression
   secDomIndex?: number;            // index of the secondary dominant in the progression
   secDomChordName?: string;        // actual chord name e.g. "D7"
   targetChordName?: string;        // actual target chord name e.g. "G"
+  secDomExtensions?: number[];     // extension intervals for the sec dom chord
+  secDomSound?: string;            // sound category e.g. "Altered", "Lydian Dominant"
   choiceChordNames?: Record<string, string>;  // maps roman numeral label to chord name
+  grooveName?: string;             // for rhythm: named groove/polyrhythm
+  grooveChoices?: string[];        // choices for groove identification question
 }
 
 export interface NoteData {

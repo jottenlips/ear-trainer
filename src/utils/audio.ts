@@ -1,5 +1,5 @@
 import Soundfont from 'soundfont-player';
-import type { InstrumentName } from '../types';
+import type { InstrumentName, PolyLayer } from '../types';
 import { durationToBeats, midiToNoteName } from './music';
 
 // Map our instrument names to soundfont instrument names
@@ -64,6 +64,21 @@ async function getClickInstrument(): Promise<Soundfont.Player> {
   return clickInstrument;
 }
 
+// Drum instruments for rhythm exercises
+let drumLow: Soundfont.Player | null = null;
+let drumHigh: Soundfont.Player | null = null;
+
+async function getDrumInstruments(): Promise<[Soundfont.Player, Soundfont.Player]> {
+  const ac = getAudioContext();
+  if (!drumLow) {
+    drumLow = await Soundfont.instrument(ac, soundfontUrl('synth_drum') as Soundfont.InstrumentName);
+  }
+  if (!drumHigh) {
+    drumHigh = await Soundfont.instrument(ac, soundfontUrl('woodblock') as Soundfont.InstrumentName);
+  }
+  return [drumLow, drumHigh];
+}
+
 // Play two notes sequentially (for intervals)
 export async function playInterval(
   note1: string,
@@ -122,6 +137,87 @@ export async function playRhythmWithCountIn(
   }
 }
 
+// Play rhythm with drum sounds — supports multi-layer polyrhythm patterns
+// Pick 2 random voice indices from [0,1,2] for polyrhythm — call once per question
+export function randomPolyVoices(): [number, number] {
+  const pool = [0, 1, 2];
+  const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+  const b = pool[Math.floor(Math.random() * pool.length)];
+  return [a, b];
+}
+
+export async function playRhythmDrum(
+  durations: string[],
+  layers: PolyLayer[] | undefined,
+  bpm: number = 100,
+  countIn: boolean = true,
+  polyVoices?: [number, number]
+): Promise<void> {
+  await ensureAudioContext();
+  const [[low, high], click] = await Promise.all([
+    getDrumInstruments(),
+    getClickInstrument(),
+  ]);
+  const ac = getAudioContext();
+  const beatDuration = 60 / bpm;
+  let time = ac.currentTime;
+
+  if (countIn) {
+    for (let i = 0; i < 4; i++) {
+      click.play(i === 0 ? 'G5' : 'C5', time, { duration: 0.05, gain: 0.5 });
+      time += beatDuration;
+    }
+  }
+
+  if (layers && layers.length > 0) {
+    // All available voice configs (same sounds used in grooves)
+    const voicePool = [
+      { drum: low,  pitch: 'C2',   gain: 0.95, dur: 0.2  },  // kick
+      { drum: low,  pitch: 'E3',   gain: 0.8,  dur: 0.12 },  // snare
+      { drum: high, pitch: 'F#5',  gain: 0.5,  dur: 0.06 },  // hi-hat
+    ];
+
+    let drumList, pitchList, gainList, durList;
+
+    if (layers.length === 2) {
+      // Polyrhythms: use provided voice indices (stable per question)
+      const indices = polyVoices ?? [0, 1];
+      const picked = indices.map(i => voicePool[i]);
+      drumList =  picked.map(v => v.drum);
+      pitchList = picked.map(v => v.pitch);
+      gainList =  picked.map(v => v.gain);
+      durList =   picked.map(v => v.dur);
+    } else {
+      // 3-voice grooves: kick, snare, hi-hat
+      drumList =  voicePool.map(v => v.drum);
+      pitchList = voicePool.map(v => v.pitch);
+      gainList =  voicePool.map(v => v.gain);
+      durList =   voicePool.map(v => v.dur);
+    }
+
+    for (let li = 0; li < layers.length; li++) {
+      const layer = layers[li];
+      const drum = drumList[li];
+      const pitch = pitchList[li];
+      const gain = gainList[li];
+      const dur = durList[li];
+
+      for (const hitBeat of layer.hits) {
+        const hitTime = time + hitBeat * beatDuration;
+        drum.play(pitch, hitTime, { duration: dur, gain });
+      }
+    }
+  } else {
+    // Single voice on drum
+    for (const dur of durations) {
+      const beats = durationToBeats(dur);
+      const seconds = beats * beatDuration;
+      low.play('C3', time, { duration: seconds * 0.7, gain: 0.85 });
+      time += seconds;
+    }
+  }
+}
+
 // Play a chord progression (array of midi note arrays)
 export async function playProgression(
   chords: number[][],
@@ -140,6 +236,88 @@ export async function playProgression(
       player.play(noteName, time, { duration: beatDuration * 1.8, gain: 0.7 });
     }
     time += beatDuration * 2; // 2 beats per chord
+  }
+}
+
+// Play progression as block chords, adding one random extension note to the sec dom chord
+export async function playProgressionWithExtensionNote(
+  chords: number[][],
+  instrument: InstrumentName,
+  secDomIndex: number,
+  extensions: number[],
+  bpm: number = 80
+): Promise<void> {
+  await ensureAudioContext();
+  const player = await loadInstrument(instrument);
+  const ac = getAudioContext();
+  const beatDuration = 60 / bpm;
+  let time = ac.currentTime;
+
+  // Pick one random extension to add
+  const ext = extensions[Math.floor(Math.random() * extensions.length)];
+
+  for (let ci = 0; ci < chords.length; ci++) {
+    const chord = chords[ci];
+    for (const midi of chord) {
+      const noteName = midiToNoteName(midi);
+      player.play(noteName, time, { duration: beatDuration * 1.8, gain: 0.7 });
+    }
+    // Add the extension note to the sec dom chord
+    if (ci === secDomIndex) {
+      const extMidi = chord[0] + 12 + ext;
+      const noteName = midiToNoteName(extMidi);
+      player.play(noteName, time, { duration: beatDuration * 1.8, gain: 0.7 });
+    }
+    time += beatDuration * 2;
+  }
+}
+
+// Play progression with arpeggios; for the sec dom chord, arpeggiate chord then extension color tones
+export async function playProgressionWithExtensions(
+  chords: number[][],
+  instrument: InstrumentName,
+  secDomIndex: number,
+  extensions: number[],
+  bpm: number = 80
+): Promise<void> {
+  await ensureAudioContext();
+  const player = await loadInstrument(instrument);
+  const ac = getAudioContext();
+  const beatDuration = 60 / bpm;
+  let time = ac.currentTime;
+
+  for (let ci = 0; ci < chords.length; ci++) {
+    const chord = chords[ci];
+
+    if (ci === secDomIndex) {
+      // For the secondary dominant: arpeggiate the chord, then play extension color tones
+      const chordRoot = chord[0];
+
+      // Arpeggiate the base chord tones
+      const arpDelay = (beatDuration * 2) / (chord.length + extensions.length + 1);
+      let noteTime = time;
+      for (const midi of chord) {
+        const noteName = midiToNoteName(midi);
+        player.play(noteName, noteTime, { duration: beatDuration * 3, gain: 0.6 });
+        noteTime += arpDelay;
+      }
+      // Then arpeggiate the extension notes (an octave above root)
+      for (const ext of extensions) {
+        const extMidi = chordRoot + 12 + ext;
+        const noteName = midiToNoteName(extMidi);
+        player.play(noteName, noteTime, { duration: beatDuration * 2.5, gain: 0.75 });
+        noteTime += arpDelay;
+      }
+    } else {
+      // Normal chords: arpeggiate bottom to top
+      const arpDelay = (beatDuration * 0.8) / chord.length;
+      for (let ni = 0; ni < chord.length; ni++) {
+        const noteName = midiToNoteName(chord[ni]);
+        player.play(noteName, time + ni * arpDelay, { duration: beatDuration * 1.8, gain: 0.7 });
+      }
+    }
+
+    time += beatDuration * 2;
   }
 }
 

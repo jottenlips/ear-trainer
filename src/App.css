@@ -367,6 +367,74 @@ body {
   font-family: inherit;
 }
 
+/* Beat grid for groove/polyrhythm patterns */
+.beat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.beat-grid-row {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.beat-grid-voice {
+  width: 16px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.beat-grid-cell {
+  flex: 1;
+  height: 16px;
+  border-radius: 0;
+  background: var(--bg);
+  border: none;
+  transition: background 0.15s;
+  min-width: 4px;
+}
+
+.beat-grid-cell.beat-start {
+  margin-left: 2px;
+}
+
+.beat-grid-cell.hit {
+  background: var(--primary);
+}
+
+.beat-grid-row:nth-child(1) .beat-grid-cell.hit {
+  background: #6c63ff;
+}
+
+.beat-grid-row:nth-child(2) .beat-grid-cell.hit {
+  background: #e57373;
+}
+
+.beat-grid-row:nth-child(3) .beat-grid-cell.hit {
+  background: #4db6ac;
+}
+
+.beat-numbers {
+  margin-top: 1px;
+}
+
+.beat-grid-cell.number {
+  height: auto;
+  background: none;
+  border: none;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1;
+}
+
 .rhythm-choice-card:hover:not(:disabled) {
   border-color: var(--primary);
   transform: translateY(-2px);
@@ -476,6 +544,89 @@ body {
   color: var(--text-muted);
   min-width: 3rem;
   text-align: center;
+}
+
+.play-controls {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-extensions-toggle {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-hover);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tempo-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.tempo-slider label {
+  min-width: 60px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.tempo-slider input[type="range"] {
+  width: 100px;
+  accent-color: var(--primary);
+}
+
+.btn-extensions-toggle.active {
+  background: rgba(108, 99, 255, 0.2);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.chord-sound {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #a78bfa;
+  opacity: 0.9;
+}
+
+.chord-extensions {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: #c4b5fd;
+  letter-spacing: 0.05em;
+}
+
+.part2-prompt {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: var(--text);
+}
+
+.sound-choices-grid {
+  margin-bottom: 0.5rem;
+}
+
+.sound-category {
+  font-size: 0.95rem;
+  font-style: italic;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.sound-category.correct {
+  color: var(--success);
+}
+
+.sound-category.incorrect {
+  color: var(--error);
 }
 
 /* === Loading === */

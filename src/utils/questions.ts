@@ -3,6 +3,7 @@ import {
   getIntervalsForDifficulty,
   getChordsForDifficulty,
   getRhythmPatterns,
+  getGrooveNames,
   getRandomRoot,
   midiToNoteName,
   noteToVexKey,
@@ -74,10 +75,18 @@ export function generateChordQuestion(difficulty: Difficulty): Question {
 
 export function generateRhythmQuestion(difficulty: Difficulty): Question {
   const patterns = getRhythmPatterns(difficulty);
-  const correct = patterns[Math.floor(Math.random() * patterns.length)];
+  const groovePatterns = patterns.filter(p => p.layers);
+  const regularPatterns = patterns.filter(p => !p.layers);
 
+  // Pick from groove or regular pool (if grooves exist, 50/50 chance)
+  const useGroove = groovePatterns.length >= 4 && Math.random() < 0.5;
+  const pool = useGroove ? groovePatterns : regularPatterns;
+
+  const correct = pool[Math.floor(Math.random() * pool.length)];
+
+  // Only use patterns from the same pool as distractors
   const distractors = pickRandom(
-    patterns.filter(p => p.label !== correct.label),
+    pool.filter(p => p.label !== correct.label),
     3
   );
   const allChoices = shuffle([correct, ...distractors]);
@@ -88,14 +97,27 @@ export function generateRhythmQuestion(difficulty: Difficulty): Question {
     keys: p.durations.map(() => ['c/4']),
     vexDurations: p.durations.map(d => toVexDuration(d)),
     tripletGroups: p.tripletGroups,
+    grooveName: p.grooveName,
+    layers: p.layers,
   }));
+
+  // Build groove choices for secondary question if correct pattern is a groove
+  let grooveChoices: string[] | undefined;
+  if (correct.grooveName) {
+    const allGrooves = getGrooveNames('hard');
+    const otherGrooves = allGrooves.filter(g => g !== correct.grooveName);
+    const distractorGrooves = pickRandom(otherGrooves, Math.min(3, otherGrooves.length));
+    grooveChoices = shuffle([correct.grooveName, ...distractorGrooves]);
+  }
 
   return {
     type: 'rhythm',
-    prompt: 'What rhythm pattern do you hear?',
+    prompt: useGroove ? 'What beat do you hear?' : 'What rhythm pattern do you hear?',
     correctAnswer: correct.label,
     choices: allChoices.map(p => p.label),
     rhythmChoices,
+    grooveName: correct.grooveName,
+    grooveChoices,
     noteData: {
       notes: correct.durations.map(() => 'C4'),
       durations: correct.durations,
@@ -141,7 +163,10 @@ export function generateSecondaryDominantQuestion(difficulty: Difficulty): Quest
     },
     progressionChords: progression.chords,
     progressionLabels: progression.labels,
+    progressionChordNames: progression.chordNames,
     secDomIndex: progression.secDomIndex,
+    secDomExtensions: progression.secDomExtensions,
+    secDomSound: progression.secDomSound,
     secDomChordName: progression.secDomChordName,
     targetChordName: progression.targetChordName,
     choiceChordNames,
