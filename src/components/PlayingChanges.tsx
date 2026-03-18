@@ -394,7 +394,7 @@ export default function PlayingChanges({ instrument }: Props) {
 
       {/* Dual Personality Section */}
       <section className="pc-section pc-sound-section">
-        <h2 style={{ color: '#ab9df5' }}>The Dual Personality Chords</h2>
+        <h2 style={{ color: '#4a8525' }}>The Dual Personality Chords</h2>
         <p className="pc-description">
           V7/V and V7/IV can sound either Mixolydian or Lydian Dominant — both work.
           Mixolydian is bluesy and inside; Lydian Dominant is polished and lifted.
