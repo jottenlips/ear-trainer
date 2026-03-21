@@ -200,8 +200,26 @@ body {
 
 /* === Difficulty Section === */
 .difficulty-section {
+  position: relative;
   margin-top: 1.5rem;
   animation: fadeIn 0.3s ease;
+}
+
+.difficulty-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+}
+
+.difficulty-close-btn:hover {
+  color: #fff;
 }
 
 .difficulty-section h2 {

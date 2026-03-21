@@ -85,6 +85,13 @@ export default function HomeScreen({ instrument }: Props) {
 
       {selectedType && (
         <div className="difficulty-section">
+          <button
+            className="difficulty-close-btn"
+            onClick={() => setSelectedType(null)}
+            aria-label="Close"
+          >
+            ✕
+          </button>
           <h2>{t('difficulty.select', lang)}</h2>
           <div className="difficulty-buttons">
             {DIFFICULTIES.map(d => (
