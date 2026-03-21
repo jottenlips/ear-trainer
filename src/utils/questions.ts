@@ -32,6 +32,7 @@ export function generateIntervalQuestion(difficulty: Difficulty): Question {
   return {
     type: 'intervals',
     prompt: `What interval is this?`,
+    promptKey: 'interval',
     correctAnswer: correct.name,
     choices,
     noteData: {
@@ -63,6 +64,8 @@ export function generateChordQuestion(difficulty: Difficulty): Question {
   return {
     type: 'chords',
     prompt: `What chord quality is this? (Root: ${rootLetter})`,
+    promptKey: 'chord',
+    promptRoot: rootLetter,
     correctAnswer: correct.name,
     choices,
     noteData: {
@@ -113,6 +116,7 @@ export function generateRhythmQuestion(difficulty: Difficulty): Question {
   return {
     type: 'rhythm',
     prompt: useGroove ? 'What beat do you hear?' : 'What rhythm pattern do you hear?',
+    promptKey: useGroove ? 'beat' : 'rhythm',
     correctAnswer: correct.label,
     choices: allChoices.map(p => p.label),
     rhythmChoices,
@@ -156,6 +160,8 @@ export function generateSecondaryDominantQuestion(difficulty: Difficulty): Quest
   return {
     type: 'secondary-dominants',
     prompt: `Key of ${rootNote} major — which secondary dominant do you hear?`,
+    promptKey: 'secdom',
+    promptRoot: rootNote,
     correctAnswer: correct.label,
     choices,
     noteData: {

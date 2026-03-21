@@ -9,6 +9,8 @@ import {
   ensureAudioContext,
   playProgressionWithExtensions,
 } from '../utils/audio';
+import { useLanguage } from '../i18n/LanguageContext';
+import { t, tSound } from '../i18n/translations';
 
 interface Props {
   instrument: InstrumentName;
@@ -84,6 +86,7 @@ export default function CircleOfFifths({ instrument }: Props) {
   const [hoveredArrow, setHoveredArrow] = useState<string | null>(null);
   const [keySemi, setKeySemi] = useState(0);
   const [keyQuality, setKeyQuality] = useState<KeyQuality>('major');
+  const { lang } = useLanguage();
 
   const keyName = NOTE_NAMES[keySemi];
   const scale = keyQuality === 'minor' ? MINOR_SCALE : MAJOR_SCALE;
@@ -128,10 +131,10 @@ export default function CircleOfFifths({ instrument }: Props) {
   return (
     <div className="cof-container">
       <div className="cof-key-label">
-        Key: <strong>{keyName} {keyQuality}</strong>
+        {t('cof.key', lang)} <strong>{keyName} {keyQuality}</strong>
         {(keySemi !== 0 || keyQuality !== 'major') && (
           <button className="btn cof-reset-btn" onClick={() => { setKeySemi(0); setKeyQuality('major'); }}>
-            Reset to C
+            {t('cof.resetToC', lang)}
           </button>
         )}
       </div>
@@ -289,8 +292,8 @@ export default function CircleOfFifths({ instrument }: Props) {
             fontSize="10"
             fontFamily="Inter, -apple-system, sans-serif"
           >
-            <tspan x="0" dy="-4">click an arrow</tspan>
-            <tspan x="0" dy="14">to hear it</tspan>
+            <tspan x="0" dy="-4">{t('cof.clickArrow', lang)}</tspan>
+            <tspan x="0" dy="14">{t('cof.toHearIt', lang)}</tspan>
           </text>
         )}
       </svg>
@@ -300,7 +303,7 @@ export default function CircleOfFifths({ instrument }: Props) {
         {Object.entries(SOUND_COLORS).filter(([s]) => s !== 'Rainbow').map(([sound, color]) => (
           <div key={sound} className="cof-legend-item">
             <span className="cof-legend-swatch" style={{ background: color }} />
-            <span>{sound}</span>
+            <span>{tSound(sound, lang)}</span>
           </div>
         ))}
       </div>

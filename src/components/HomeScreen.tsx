@@ -2,47 +2,51 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Difficulty, ExerciseType, InstrumentName } from '../types';
 import { ensureAudioContext } from '../utils/audio';
+import { useLanguage } from '../i18n/LanguageContext';
+import { t } from '../i18n/translations';
+import type { TranslationKey } from '../i18n/translations';
 
 interface Props {
   instrument: InstrumentName;
 }
 
-const EXERCISES: { type: ExerciseType; title: string; description: string; icon: string }[] = [
+const EXERCISES: { type: ExerciseType; titleKey: TranslationKey; descKey: TranslationKey; icon: string }[] = [
   {
     type: 'intervals',
-    title: 'Intervals',
-    description: 'Identify intervals up to 2 octaves',
+    titleKey: 'exercise.intervals',
+    descKey: 'exercise.intervals.desc',
     icon: '↕',
   },
   {
     type: 'chords',
-    title: 'Chord Quality',
-    description: 'Identify chord types by ear',
+    titleKey: 'exercise.chords',
+    descKey: 'exercise.chords.desc',
     icon: '♫',
   },
   {
     type: 'rhythm',
-    title: 'Rhythm',
-    description: 'Identify rhythm patterns',
+    titleKey: 'exercise.rhythm',
+    descKey: 'exercise.rhythm.desc',
     icon: '🥁',
   },
   {
     type: 'secondary-dominants',
-    title: 'Secondary Dominants',
-    description: 'Identify secondary dominants in progressions',
+    titleKey: 'exercise.secondaryDominants',
+    descKey: 'exercise.secondaryDominants.desc',
     icon: 'V7/',
   },
 ];
 
-const DIFFICULTIES: { value: Difficulty; label: string; color: string }[] = [
-  { value: 'easy', label: 'Easy', color: '#4caf50' },
-  { value: 'medium', label: 'Medium', color: '#ff9800' },
-  { value: 'hard', label: 'Hard', color: '#f44336' },
+const DIFFICULTIES: { value: Difficulty; labelKey: TranslationKey; color: string }[] = [
+  { value: 'easy', labelKey: 'difficulty.easy', color: '#4caf50' },
+  { value: 'medium', labelKey: 'difficulty.medium', color: '#ff9800' },
+  { value: 'hard', labelKey: 'difficulty.hard', color: '#f44336' },
 ];
 
 export default function HomeScreen({ instrument }: Props) {
   const [selectedType, setSelectedType] = useState<ExerciseType | null>(null);
   const navigate = useNavigate();
+  const { lang } = useLanguage();
 
   const handleStart = async (difficulty: Difficulty) => {
     await ensureAudioContext();
@@ -54,9 +58,9 @@ export default function HomeScreen({ instrument }: Props) {
   return (
     <div className="home-screen">
       <div className="hero">
-        <h1>Ear Trainer</h1>
-        <p className="subtitle">Train your musical ear with intervals, chords, rhythms, and progressions</p>
-        <p className="instrument-note">Current instrument: <strong>{instrument}</strong></p>
+        <h1>{t('app.title', lang)}</h1>
+        <p className="subtitle">{t('app.subtitle', lang)}</p>
+        <p className="instrument-note">{t('app.currentInstrument', lang)} <strong>{t(`instrument.${instrument}` as TranslationKey, lang)}</strong></p>
       </div>
 
       <div className="exercise-cards">
@@ -67,21 +71,21 @@ export default function HomeScreen({ instrument }: Props) {
             onClick={() => setSelectedType(ex.type)}
           >
             <span className="card-icon">{ex.icon}</span>
-            <h3>{ex.title}</h3>
-            <p>{ex.description}</p>
+            <h3>{t(ex.titleKey, lang)}</h3>
+            <p>{t(ex.descKey, lang)}</p>
           </button>
         ))}
       </div>
 
       <div className="playing-changes-link">
         <Link to="/playing-changes" className="btn btn-playing-changes">
-          Playing Changes
+          {t('playingChanges', lang)}
         </Link>
       </div>
 
       {selectedType && (
         <div className="difficulty-section">
-          <h2>Select Difficulty</h2>
+          <h2>{t('difficulty.select', lang)}</h2>
           <div className="difficulty-buttons">
             {DIFFICULTIES.map(d => (
               <button
@@ -90,37 +94,37 @@ export default function HomeScreen({ instrument }: Props) {
                 style={{ '--diff-color': d.color } as React.CSSProperties}
                 onClick={() => handleStart(d.value)}
               >
-                {d.label}
+                {t(d.labelKey, lang)}
               </button>
             ))}
           </div>
           <div className="difficulty-info">
             {selectedType === 'intervals' && (
               <>
-                <p><strong>Easy:</strong> Common intervals within 1 octave (m3, M3, P4, P5, P8)</p>
-                <p><strong>Medium:</strong> All intervals within 1 octave</p>
-                <p><strong>Hard:</strong> All intervals up to 2 octaves</p>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.intervals.easy', lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.intervals.medium', lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.intervals.hard', lang)}</p>
               </>
             )}
             {selectedType === 'chords' && (
               <>
-                <p><strong>Easy:</strong> Major, Minor, Diminished, Augmented</p>
-                <p><strong>Medium:</strong> + Dominant 7th, Major 7th, Minor 7th</p>
-                <p><strong>Hard:</strong> + Dim7, Half-Dim7, Aug7, Sus2, Sus4</p>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.chords.easy', lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.chords.medium', lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.chords.hard', lang)}</p>
               </>
             )}
             {selectedType === 'rhythm' && (
               <>
-                <p><strong>Easy:</strong> Whole, half, and quarter notes</p>
-                <p><strong>Medium:</strong> Eighths, triplets, dotted rhythms + grooves (Rock, Shuffle, Bossa Nova, 3:2)</p>
-                <p><strong>Hard:</strong> 16ths, syncopation + polyrhythms (3:4, 4:3) and claves (Son, Rumba, Samba, Afro-Cuban)</p>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.rhythm.easy', lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.rhythm.medium', lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.rhythm.hard', lang)}</p>
               </>
             )}
             {selectedType === 'secondary-dominants' && (
               <>
-                <p><strong>Easy:</strong> V7/V, V7/IV, V7/ii</p>
-                <p><strong>Medium:</strong> + V7/vi, V7/iii</p>
-                <p><strong>Hard:</strong> + Tritone subs (SubV7/I), V7/bVII</p>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.secdom.easy', lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.secdom.medium', lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.secdom.hard', lang)}</p>
               </>
             )}
           </div>

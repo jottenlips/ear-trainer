@@ -13,6 +13,8 @@ import {
   playProgressionWithExtensions,
 } from '../utils/audio';
 import CircleOfFifths from './CircleOfFifths';
+import { useLanguage } from '../i18n/LanguageContext';
+import { t, tSound } from '../i18n/translations';
 
 interface Props {
   instrument: InstrumentName;
@@ -30,11 +32,11 @@ const ALL_SEC_DOMS = getSecondaryDominants('hard');
 interface SoundGroup {
   sound: SecDomSound;
   color: string;
-  description: string;
-  vibe: string;
+  descKey: string;
+  vibeKey: string;
   extensions: string;
-  whyText: string[];
-  realProgressions: { title: string; description: string }[];
+  whyKeys: string[];
+  refKeys: { titleKey: string; descKey: string }[];
   secDoms: SecondaryDominantInfo[];
 }
 
@@ -42,72 +44,56 @@ const SOUND_GROUPS: SoundGroup[] = [
   {
     sound: 'Mixolydian',
     color: '#4db6ac',
-    description: 'Bright, bluesy, uncomplicated. The extensions all come from the mixolydian mode — no surprise notes.',
-    vibe: 'Think Jerry Garcia on Fire on the Mountain, or any classic rock dominant vamp.',
+    descKey: 'soundGroup.mixo.desc',
+    vibeKey: 'soundGroup.mixo.vibe',
     extensions: '9, 11, 13',
-    whyText: [
-      'These are all diatonic — they sit inside the parent major scale without alteration.',
-      'The natural 11 works here because in a mixolydian context the chord functions more as a modal sound than a hard V-I resolution.',
-      'This is the most "inside" a secondary dominant can sound.',
-    ],
-    realProgressions: [
-      { title: 'Fire on the Mountain', description: 'Grateful Dead — B7 vamp with a mixolydian feel' },
-      { title: 'Blues turnarounds', description: 'I7 → IV7 → V7, all mixolydian dominant sounds' },
-      { title: 'Everyday', description: 'Buddy Holly — D → A7 → D, pure mixolydian color' },
+    whyKeys: ['soundGroup.mixo.why1', 'soundGroup.mixo.why2', 'soundGroup.mixo.why3'],
+    refKeys: [
+      { titleKey: 'soundGroup.mixo.ref1.title', descKey: 'soundGroup.mixo.ref1.desc' },
+      { titleKey: 'soundGroup.mixo.ref2.title', descKey: 'soundGroup.mixo.ref2.desc' },
+      { titleKey: 'soundGroup.mixo.ref3.title', descKey: 'soundGroup.mixo.ref3.desc' },
     ],
     secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Mixolydian'),
   },
   {
     sound: 'Lydian Dominant',
     color: '#ffb74d',
-    description: 'Floating, bright but sophisticated. The #11 gives it a lifted quality — not as dark as altered, not as plain as mixolydian.',
-    vibe: 'The definitive tritone substitute color. The #11 signals "I\'m a sub, not a regular dominant."',
+    descKey: 'soundGroup.lyddom.desc',
+    vibeKey: 'soundGroup.lyddom.vibe',
     extensions: '9, #11, 13',
-    whyText: [
-      'The lydian dominant scale (4th mode of melodic minor) raises the 11th to avoid the clash with the major 3rd.',
-      'For SubV7/I: the #11 of the tritone sub is the root of the V7 it\'s substituting for.',
-      'The extensions of a lydian dominant tritone sub mirror the altered dominant they replace.',
-    ],
-    realProgressions: [
-      { title: 'Girl From Ipanema', description: 'The Db7 in the bridge — pure lydian dominant color' },
-      { title: 'Lady Bird', description: 'Tadd Dameron — tritone subs with lydian dominant extensions' },
-      { title: 'Steely Dan', description: 'Frequently uses II7 with #11 for that polished, lifted sound' },
+    whyKeys: ['soundGroup.lyddom.why1', 'soundGroup.lyddom.why2', 'soundGroup.lyddom.why3'],
+    refKeys: [
+      { titleKey: 'soundGroup.lyddom.ref1.title', descKey: 'soundGroup.lyddom.ref1.desc' },
+      { titleKey: 'soundGroup.lyddom.ref2.title', descKey: 'soundGroup.lyddom.ref2.desc' },
+      { titleKey: 'soundGroup.lyddom.ref3.title', descKey: 'soundGroup.lyddom.ref3.desc' },
     ],
     secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Lydian Dominant'),
   },
   {
     sound: 'Altered',
     color: '#e57373',
-    description: 'Dark, tense, unstable. Maximum chromaticism against the parent key. Every extension is altered from its natural position.',
-    vibe: 'The sound of bebop and modern jazz tension. These resolve to minor chords (ii, vi, iii).',
+    descKey: 'soundGroup.altered.desc',
+    vibeKey: 'soundGroup.altered.vibe',
     extensions: 'b9, #9, #11, b13',
-    whyText: [
-      'The altered extensions reflect the harmonic minor scale of the target key.',
-      'Natural 11 is NOT used — it\'s a half step above the major 3rd, which sounds wrong rather than tense.',
-      'The b9 is the telltale: it creates a diminished sound against the root that your ear immediately codes as "altered."',
-    ],
-    realProgressions: [
-      { title: 'Autumn Leaves', description: 'E7 → Am (V7/vi) — the defining altered sound' },
-      { title: 'Stella by Starlight', description: 'Loaded with altered dominants resolving to minor chords' },
-      { title: 'Blue Bossa', description: 'A7(b9) → Dm — textbook altered secondary dominant' },
+    whyKeys: ['soundGroup.altered.why1', 'soundGroup.altered.why2', 'soundGroup.altered.why3'],
+    refKeys: [
+      { titleKey: 'soundGroup.altered.ref1.title', descKey: 'soundGroup.altered.ref1.desc' },
+      { titleKey: 'soundGroup.altered.ref2.title', descKey: 'soundGroup.altered.ref2.desc' },
+      { titleKey: 'soundGroup.altered.ref3.title', descKey: 'soundGroup.altered.ref3.desc' },
     ],
     secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Altered'),
   },
   {
     sound: 'Whole Tone',
     color: '#9575cd',
-    description: 'Shimmery, symmetrical, floating in space. Every note a whole step apart — no half steps means no strong pull in any direction.',
-    vibe: 'Thelonious Monk and Wayne Shorter territory. The whole tone scale dissolves tonal gravity.',
+    descKey: 'soundGroup.wholetone.desc',
+    vibeKey: 'soundGroup.wholetone.vibe',
     extensions: '9, #11, b13',
-    whyText: [
-      'The whole tone scale (C, D, E, F#, G#, A#) naturally produces a dom7 chord with exactly 9, #11, and b13.',
-      'There\'s no perfect 5th — it\'s replaced by #5/b13, giving the chord an augmented quality.',
-      'The symmetry of the scale means every note is equidistant, creating that directionless, dreamlike color.',
-    ],
-    realProgressions: [
-      { title: 'Monk\'s Dream', description: 'Thelonious Monk — whole tone runs over dominant chords' },
-      { title: 'Juju', description: 'Wayne Shorter — whole tone color over suspended dominants' },
-      { title: 'Debussy', description: 'Voiles — the original whole tone sound in Western music' },
+    whyKeys: ['soundGroup.wholetone.why1', 'soundGroup.wholetone.why2', 'soundGroup.wholetone.why3'],
+    refKeys: [
+      { titleKey: 'soundGroup.wholetone.ref1.title', descKey: 'soundGroup.wholetone.ref1.desc' },
+      { titleKey: 'soundGroup.wholetone.ref2.title', descKey: 'soundGroup.wholetone.ref2.desc' },
+      { titleKey: 'soundGroup.wholetone.ref3.title', descKey: 'soundGroup.wholetone.ref3.desc' },
     ],
     secDoms: ALL_SEC_DOMS.filter(sd => sd.sound === 'Whole Tone'),
   },
@@ -134,6 +120,7 @@ function PlayButton({ label, onClick, playing }: { label: string; onClick: () =>
 export default function PlayingChanges({ instrument }: Props) {
   const navigate = useNavigate();
   const [playing, setPlaying] = useState<string | null>(null);
+  const { lang } = useLanguage();
 
   const playExample = useCallback(async (
     id: string,
@@ -209,66 +196,62 @@ export default function PlayingChanges({ instrument }: Props) {
   return (
     <div className="playing-changes">
       <div className="pc-header">
-        <button className="btn btn-secondary" onClick={() => navigate('/')}>Back</button>
-        <h1>Playing Changes</h1>
+        <button className="btn btn-secondary" onClick={() => navigate('/')}>{t('pc.back', lang)}</button>
+        <h1>{t('pc.title', lang)}</h1>
+        <blockquote className="pc-quote">
+          "There is no wrong note, it has to do with how you resolve it" — Thelonious Monk
+        </blockquote>
         <p className="pc-subtitle">
-          Secondary dominant extensions — what they are, why they work, and how they sound.
-          All examples in the key of C major.
+          {t('pc.subtitle', lang)}
         </p>
       </div>
 
       {/* What is a secondary dominant */}
       <section className="pc-section">
-        <h2>What's a Secondary Dominant?</h2>
+        <h2>{t('pc.whatIsSecDom', lang)}</h2>
         <p>
-          In any major key, the V7 chord naturally wants to resolve to I. A <strong>secondary dominant</strong> borrows
-          that same pull and points it at a different chord in the key. V7/V is a dominant 7th built to resolve
-          to the V chord; V7/ii resolves to ii; and so on. They're "temporary key changes" — your ear briefly
-          hears a new tonal center before snapping back.
+          {t('pc.whatIsSecDom.p1', lang)}
         </p>
         <p className="pc-muted" style={{ marginTop: '0.5rem' }}>
-          What makes each one sound different isn't the dom7 shell (they all have root, 3, 5, b7) —
-          it's the <em>extensions</em> on top. Those color tones come from the scale that fits the chord's
-          resolution, and they fall into three categories.
+          {t('pc.whatIsSecDom.p2', lang)}
         </p>
       </section>
 
       {/* Color → Destination */}
       <section className="pc-section">
-        <h2>Color → Destination</h2>
+        <h2>{t('pc.colorDest', lang)}</h2>
         <p>
-          The goal isn't to memorize which extensions go where — it's to hear the <em>color</em>:
+          {t('pc.colorDest.intro', lang)}
         </p>
         <div className="pc-color-summary">
           <div className="pc-color-item" style={{ borderColor: '#4db6ac' }}>
-            <strong style={{ color: '#4db6ac' }}>Mixolydian</strong> — sounds like home turned dominant. It's the blues.
+            <strong style={{ color: '#4db6ac' }}>{tSound('Mixolydian', lang)}</strong> — {t('pc.colorDest.mixo', lang).split(' — ')[1]}
           </div>
           <div className="pc-color-item" style={{ borderColor: '#ffb74d' }}>
-            <strong style={{ color: '#ffb74d' }}>Lydian Dominant</strong> — sounds like it's floating above the key. Bright but not inside.
+            <strong style={{ color: '#ffb74d' }}>{tSound('Lydian Dominant', lang)}</strong> — {t('pc.colorDest.lyddom', lang).split(' — ')[1]}
           </div>
           <div className="pc-color-item" style={{ borderColor: '#e57373' }}>
-            <strong style={{ color: '#e57373' }}>Altered</strong> — sounds like maximum tension. Dark, chromatic, pulling hard toward resolution.
+            <strong style={{ color: '#e57373' }}>{tSound('Altered', lang)}</strong> — {t('pc.colorDest.altered', lang).split(' — ')[1]}
           </div>
           <div className="pc-color-item" style={{ borderColor: '#9575cd' }}>
-            <strong style={{ color: '#9575cd' }}>Whole Tone</strong> — shimmery and symmetrical. Floating with no strong pull in any direction.
+            <strong style={{ color: '#9575cd' }}>{tSound('Whole Tone', lang)}</strong> — {t('pc.colorDest.wholetone', lang).split(' — ')[1]}
           </div>
         </div>
         <p className="pc-muted" style={{ marginTop: '1rem' }}>
-          The chord structure (dom7) is the same for all secondary dominants — the <em>color on top</em> tells
-          your ear where it wants to go.
+          {t('pc.colorDest.outro', lang)}
         </p>
       </section>
 
       {/* The Chart */}
       <section className="pc-section">
-        <h2>The Chart</h2>
+        <h2>{t('pc.chart', lang)}</h2>
         <div className="pc-chart">
           <div className="pc-chart-header">
-            <span>Chord</span>
-            <span>Label</span>
-            <span>Example</span>
-            <span>Sound</span>
-            <span>Extensions</span>
+            <span>{t('pc.chart.chord', lang)}</span>
+            <span>{t('pc.chart.label', lang)}</span>
+            <span>{t('pc.chart.example', lang)}</span>
+            <span>{t('pc.chart.sound', lang)}</span>
+            <span>{t('pc.chart.extensions', lang)}</span>
           </div>
           {ALL_SEC_DOMS.map(secDom => {
             const soundColor = secDom.sound === 'Altered' ? '#e57373'
@@ -285,8 +268,8 @@ export default function PlayingChanges({ instrument }: Props) {
                   {chordName(secDom)} → {targetName(secDom)}
                 </span>
                 <span className="pc-chart-cell" style={{ color: soundColor }}>
-                  {secDom.sound}
-                  {secDom.altSound && <span className="pc-chart-alt"> / {secDom.altSound}</span>}
+                  {tSound(secDom.sound, lang)}
+                  {secDom.altSound && <span className="pc-chart-alt"> / {tSound(secDom.altSound, lang)}</span>}
                 </span>
                 <span className="pc-chart-cell pc-chart-exts">
                   {secDom.extensions.map(e => EXT_NAMES[e]).join(', ')}
@@ -299,25 +282,23 @@ export default function PlayingChanges({ instrument }: Props) {
 
       {/* The Setup */}
       <section className="pc-section">
-        <h2>The Setup</h2>
+        <h2>{t('pc.setup', lang)}</h2>
         <p>
-          Every example plays: <strong>Imaj7 → ii7 → V7 → Imaj7 → [SecDom] → [Target]</strong>
+          <strong>{t('pc.setup.p1', lang)}</strong>
         </p>
         <p className="pc-muted">
-          The first four chords establish the key. Then the secondary dominant arrives with its
-          extension color tones, and your ear hears the sound category — mixolydian, lydian dominant,
-          or altered — which tells you where it wants to resolve.
+          {t('pc.setup.p2', lang)}
         </p>
       </section>
 
       {/* Extension Reference */}
       <section className="pc-section">
-        <h2>Extension Intervals</h2>
+        <h2>{t('pc.extIntervals', lang)}</h2>
         <div className="pc-ext-table">
           {Object.entries(EXT_NAMES).map(([semi, name]) => (
             <div key={semi} className="pc-ext-cell">
               <span className="pc-ext-name">{name}</span>
-              <span className="pc-ext-semi">{semi} semitones</span>
+              <span className="pc-ext-semi">{semi} {t('pc.semitones', lang)}</span>
             </div>
           ))}
         </div>
@@ -326,24 +307,24 @@ export default function PlayingChanges({ instrument }: Props) {
       {/* Sound Categories */}
       {SOUND_GROUPS.map(group => (
         <section key={group.sound} className="pc-section pc-sound-section">
-          <h2 style={{ color: group.color }}>{group.sound}</h2>
+          <h2 style={{ color: group.color }}>{tSound(group.sound, lang)}</h2>
           <p className="pc-extensions-label" style={{ color: group.color }}>
-            Extensions: {group.extensions}
+            {t('pc.extensions', lang)} {group.extensions}
           </p>
-          <p className="pc-description">{group.description}</p>
-          <p className="pc-vibe">{group.vibe}</p>
+          <p className="pc-description">{t(group.descKey as any, lang)}</p>
+          <p className="pc-vibe">{t(group.vibeKey as any, lang)}</p>
 
           {/* Why these extensions */}
           <div className="pc-why">
-            <h3>Why these extensions?</h3>
-            {group.whyText.map((text, i) => (
-              <p key={i}>{text}</p>
+            <h3>{t('pc.whyExtensions', lang)}</h3>
+            {group.whyKeys.map((key, i) => (
+              <p key={i}>{t(key as any, lang)}</p>
             ))}
           </div>
 
           {/* Playable examples */}
           <div className="pc-examples">
-            <h3>Hear it</h3>
+            <h3>{t('pc.hearIt', lang)}</h3>
             {group.secDoms.map(secDom => (
               <div key={secDom.label} className="pc-example-card" style={{ borderColor: group.color }}>
                 <div className="pc-example-header">
@@ -354,17 +335,17 @@ export default function PlayingChanges({ instrument }: Props) {
                 </div>
                 <div className="pc-example-buttons">
                   <PlayButton
-                    label="Full Progression"
+                    label={t('pc.fullProgression', lang)}
                     onClick={() => playExample(`${secDom.label}-full`, secDom)}
                     playing={playing === `${secDom.label}-full`}
                   />
                   <PlayButton
-                    label="Just the Chord"
+                    label={t('pc.justChord', lang)}
                     onClick={() => playJustChord(`${secDom.label}-chord`, secDom)}
                     playing={playing === `${secDom.label}-chord`}
                   />
                   <PlayButton
-                    label="No Extensions"
+                    label={t('pc.noExtensions', lang)}
                     onClick={() => playBlockChords(`${secDom.label}-block`, secDom)}
                     playing={playing === `${secDom.label}-block`}
                   />
@@ -382,10 +363,10 @@ export default function PlayingChanges({ instrument }: Props) {
 
           {/* Real progressions */}
           <div className="pc-real">
-            <h3>Where you've heard it</h3>
-            {group.realProgressions.map((rp, i) => (
+            <h3>{t('pc.whereHeard', lang)}</h3>
+            {group.refKeys.map((ref, i) => (
               <div key={i} className="pc-real-item">
-                <strong>{rp.title}</strong> — {rp.description}
+                <strong>{t(ref.titleKey as any, lang)}</strong> — {t(ref.descKey as any, lang)}
               </div>
             ))}
           </div>
@@ -394,11 +375,9 @@ export default function PlayingChanges({ instrument }: Props) {
 
       {/* Dual Personality Section */}
       <section className="pc-section pc-sound-section">
-        <h2 style={{ color: '#4a8525' }}>The Dual Personality Chords</h2>
+        <h2 style={{ color: '#4a8525' }}>{t('pc.dualPersonality', lang)}</h2>
         <p className="pc-description">
-          V7/V and V7/IV can sound either Mixolydian or Lydian Dominant — both work.
-          Mixolydian is bluesy and inside; Lydian Dominant is polished and lifted.
-          Compare them side by side.
+          {t('pc.dualPersonality.desc', lang)}
         </p>
 
         <div className="pc-examples">
@@ -412,7 +391,7 @@ export default function PlayingChanges({ instrument }: Props) {
               </div>
               <div className="pc-dual-compare">
                 <div className="pc-dual-side" style={{ borderColor: '#4db6ac' }}>
-                  <h4 style={{ color: '#4db6ac' }}>Mixolydian</h4>
+                  <h4 style={{ color: '#4db6ac' }}>{tSound('Mixolydian', lang)}</h4>
                   <div className="pc-example-ext-list">
                     {secDom.extensions.map(e => (
                       <span key={e} className="pc-ext-badge" style={{ background: '#4db6ac' }}>
@@ -421,13 +400,13 @@ export default function PlayingChanges({ instrument }: Props) {
                     ))}
                   </div>
                   <PlayButton
-                    label="Play Mixolydian"
+                    label={t('pc.playMixo', lang)}
                     onClick={() => playExample(`${secDom.label}-mixo`, secDom, false)}
                     playing={playing === `${secDom.label}-mixo`}
                   />
                 </div>
                 <div className="pc-dual-side" style={{ borderColor: '#ffb74d' }}>
-                  <h4 style={{ color: '#ffb74d' }}>Lydian Dominant</h4>
+                  <h4 style={{ color: '#ffb74d' }}>{tSound('Lydian Dominant', lang)}</h4>
                   <div className="pc-example-ext-list">
                     {secDom.altExtensions!.map(e => (
                       <span key={e} className="pc-ext-badge" style={{ background: '#ffb74d' }}>
@@ -436,7 +415,7 @@ export default function PlayingChanges({ instrument }: Props) {
                     ))}
                   </div>
                   <PlayButton
-                    label="Play Lydian Dom"
+                    label={t('pc.playLydDom', lang)}
                     onClick={() => playExample(`${secDom.label}-lyddom`, secDom, true)}
                     playing={playing === `${secDom.label}-lyddom`}
                   />
@@ -449,10 +428,9 @@ export default function PlayingChanges({ instrument }: Props) {
 
       {/* Circle of Fifths */}
       <section className="pc-section">
-        <h2>The Circle</h2>
+        <h2>{t('pc.circle', lang)}</h2>
         <p className="pc-muted">
-          Secondary dominants resolve clockwise (down a fifth). Tritone subs sit across the circle
-          and resolve down a half step. Click any arrow to hear the full progression.
+          {t('pc.circle.desc', lang)}
         </p>
         <CircleOfFifths instrument={instrument} />
       </section>

@@ -45,6 +45,8 @@ export interface RhythmChoice {
 export interface Question {
   type: ExerciseType;
   prompt: string;
+  promptKey?: string;    // translation key for prompt
+  promptRoot?: string;   // root note for prompt (e.g. "C")
   correctAnswer: string;
   choices: string[];
   noteData?: NoteData;

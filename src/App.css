@@ -749,6 +749,15 @@ body {
   margin: 1rem 0 0.5rem;
 }
 
+.pc-quote {
+  font-style: italic;
+  color: var(--text-muted);
+  border-left: 3px solid var(--primary);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  font-size: 1.05rem;
+}
+
 .pc-subtitle {
   color: var(--text-muted);
   font-size: 1rem;
