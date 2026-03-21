@@ -68,9 +68,11 @@ const SOUND_CHOICES = ['Altered', 'Mixolydian', 'Lydian Dominant', 'Whole Tone']
 
 interface Props {
   instrument: InstrumentName;
+  autoMode: boolean;
+  setAutoMode: (value: boolean | ((prev: boolean) => boolean)) => void;
 }
 
-export default function ExerciseView({ instrument }: Props) {
+export default function ExerciseView({ instrument, autoMode, setAutoMode }: Props) {
   const { type, difficulty: diffParam } = useParams<{ type: string; difficulty: string }>();
   const navigate = useNavigate();
   const { lang } = useLanguage();
@@ -94,11 +96,14 @@ export default function ExerciseView({ instrument }: Props) {
   const [soundRevealed, setSoundRevealed] = useState(false);
   const [grooveSelected, setGrooveSelected] = useState<string | null>(null);
   const [grooveRevealed, setGrooveRevealed] = useState(false);
-  // Auto mode state
-  const [autoMode, setAutoMode] = useState(false);
+  // Auto mode state (autoMode itself is a global prop)
   const [autoPhase, setAutoPhase] = useState<'idle' | 'playing' | 'thinking' | 'revealing' | 'pausing'>('idle');
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoCancelledRef = useRef(false);
+  const autoModeRef = useRef(autoMode);
+  autoModeRef.current = autoMode;
+  // Track whether the current question has already been played (to avoid replay on auto toggle)
+  const questionPlayedRef = useRef(false);
 
   const newQuestion = useCallback(() => {
     setQuestion(generateQuestion(exerciseType, difficulty));
@@ -111,6 +116,7 @@ export default function ExerciseView({ instrument }: Props) {
     setGrooveSelected(null);
     setGrooveRevealed(false);
     setPolyVoices(randomPolyVoices());
+    questionPlayedRef.current = false;
   }, [exerciseType, difficulty]);
 
   useEffect(() => {
@@ -233,7 +239,7 @@ export default function ExerciseView({ instrument }: Props) {
     return q.correctAnswer;
   }, [exerciseType]);
 
-  // Auto mode cycle: play → wait 3s → speak answer → wait 2s → next
+  // Auto mode cycle: play → wait for playback → think → speak answer → wait → next
   useEffect(() => {
     if (!autoMode || !question) {
       setAutoPhase('idle');
@@ -242,51 +248,81 @@ export default function ExerciseView({ instrument }: Props) {
 
     autoCancelledRef.current = false;
 
+    // Calculate how long the audio actually takes to play (notes are scheduled, not blocking)
+    const getPlaybackDurationMs = (): number => {
+      if (exerciseType === 'secondary-dominants' && question.progressionChords) {
+        const bpm = 80;
+        const beatDuration = 60 / bpm; // 0.75s
+        const numChords = question.progressionChords.length; // typically 6
+        return numChords * beatDuration * 2 * 1000; // 2 beats per chord
+      }
+      return 0; // other types already block until playback finishes
+    };
+
     const runCycle = async () => {
+      const alreadyPlayed = questionPlayedRef.current;
+
       // Phase: playing
       setAutoPhase('playing');
-      // Small delay before playing to let state settle
-      await new Promise(r => { autoTimerRef.current = setTimeout(r, 400); });
-      if (autoCancelledRef.current) return;
 
-      // Play the question
-      try {
-        switch (exerciseType) {
-          case 'intervals':
-            await playInterval(question.noteData!.notes[0], question.noteData!.notes[1], instrument);
-            break;
-          case 'chords':
-          case 'inversions':
-            await playChord(question.noteData!.notes, instrument);
-            break;
-          case 'rhythm': {
-            const matchingChoice = question.rhythmChoices?.find(rc => rc.label === question.correctAnswer);
-            if (matchingChoice?.layers) {
-              await playRhythmDrum(question.noteData!.durations!, matchingChoice.layers, rhythmBpm, metronome, polyVoices);
-            } else {
-              await playRhythmDrum(question.noteData!.durations!, undefined, rhythmBpm, metronome);
-            }
-            break;
-          }
-          case 'secondary-dominants':
-            if (question.progressionChords) {
-              const hasExt = showExtensions && question.secDomExtensions && question.secDomIndex !== undefined;
-              if (hasExt && showArpeggio) {
-                await playProgressionWithExtensions(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
-              } else if (hasExt) {
-                await playProgressionWithExtensionNote(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
+      if (alreadyPlayed) {
+        // Question was already played before auto mode was enabled — skip replay
+        // Just give a brief pause before thinking
+        await new Promise(r => { autoTimerRef.current = setTimeout(r, 500); });
+      } else {
+        // Small delay before playing to let state settle
+        await new Promise(r => { autoTimerRef.current = setTimeout(r, 400); });
+        if (autoCancelledRef.current) return;
+
+        // Play the question
+        const playbackMs = getPlaybackDurationMs();
+        try {
+          switch (exerciseType) {
+            case 'intervals':
+              await playInterval(question.noteData!.notes[0], question.noteData!.notes[1], instrument);
+              break;
+            case 'chords':
+            case 'inversions':
+              await playChord(question.noteData!.notes, instrument);
+              break;
+            case 'rhythm': {
+              const matchingChoice = question.rhythmChoices?.find(rc => rc.label === question.correctAnswer);
+              if (matchingChoice?.layers) {
+                await playRhythmDrum(question.noteData!.durations!, matchingChoice.layers, rhythmBpm, metronome, polyVoices);
               } else {
-                await playProgression(question.progressionChords, instrument);
+                await playRhythmDrum(question.noteData!.durations!, undefined, rhythmBpm, metronome);
               }
+              break;
             }
-            break;
+            case 'secondary-dominants':
+              if (question.progressionChords) {
+                const hasExt = showExtensions && question.secDomExtensions && question.secDomIndex !== undefined;
+                if (hasExt && showArpeggio) {
+                  await playProgressionWithExtensions(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
+                } else if (hasExt) {
+                  await playProgressionWithExtensionNote(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
+                } else {
+                  await playProgression(question.progressionChords, instrument);
+                }
+              }
+              break;
+          }
+        } catch { /* ignore playback errors */ }
+        if (autoCancelledRef.current) return;
+        questionPlayedRef.current = true;
+
+        // For secondary dominants, wait for the scheduled audio to actually finish playing
+        if (playbackMs > 0) {
+          await new Promise(r => { autoTimerRef.current = setTimeout(r, playbackMs); });
+          if (autoCancelledRef.current) return;
         }
-      } catch { /* ignore playback errors */ }
+      }
       if (autoCancelledRef.current) return;
 
-      // Phase: thinking (3 seconds)
+      // Phase: thinking — longer for secondary dominants to give time to process
+      const thinkingMs = exerciseType === 'secondary-dominants' ? 6000 : 3000;
       setAutoPhase('thinking');
-      await new Promise(r => { autoTimerRef.current = setTimeout(r, 3000); });
+      await new Promise(r => { autoTimerRef.current = setTimeout(r, thinkingMs); });
       if (autoCancelledRef.current) return;
 
       // Phase: revealing — speak the answer
@@ -352,7 +388,8 @@ export default function ExerciseView({ instrument }: Props) {
 
   // Auto-play on new question (only when NOT in auto mode — auto mode handles its own playback)
   useEffect(() => {
-    if (question && !autoMode) {
+    if (question && !autoModeRef.current) {
+      questionPlayedRef.current = true;
       const timer = setTimeout(handlePlay, 300);
       return () => clearTimeout(timer);
     }

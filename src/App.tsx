@@ -10,6 +10,7 @@ import './App.css';
 
 function App() {
   const [instrument, setInstrument] = useState<InstrumentName>('piano');
+  const [autoMode, setAutoMode] = useState(false);
   const [silentModeWarning, setSilentModeWarning] = useState(false);
 
   // Detect iOS silent mode on first user interaction (global, runs once)
@@ -45,7 +46,7 @@ function App() {
         <Route path="/" element={<HomeScreen instrument={instrument} />} />
         <Route
           path="/exercise/:type/:difficulty"
-          element={<ExerciseView instrument={instrument} />}
+          element={<ExerciseView instrument={instrument} autoMode={autoMode} setAutoMode={setAutoMode} />}
         />
         <Route
           path="/playing-changes"
