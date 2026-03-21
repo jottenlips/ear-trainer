@@ -30,9 +30,9 @@ let clickInstrument: Soundfont.Player | null = null;
 function getAudioContext(): AudioContext {
   if (!audioContext) {
     // Use 'playback' category on iOS so audio plays even when the silent switch is on
+    // @ts-ignore – webkitAudioCategory is a webkit-specific option recognized by Safari/iOS
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
       ...(navigator.userAgent.match(/iPhone|iPad|iPod/) && {
-        // @ts-ignore – webkit-specific option recognized by Safari/iOS
         webkitAudioCategory: 'playback',
       }),
     });
@@ -40,7 +40,36 @@ function getAudioContext(): AudioContext {
   return audioContext;
 }
 
+/**
+ * Unlock audio on iOS even when the silent/mute switch is on.
+ * Playing a tiny silent WAV through an <audio> element forces Safari to start
+ * an audio session in "playback" mode, which then also applies to the
+ * Web Audio API AudioContext.
+ */
+let iosSilentModeUnlocked = false;
+
+function unlockIOSSilentMode(): void {
+  if (iosSilentModeUnlocked) return;
+  if (!navigator.userAgent.match(/iPhone|iPad|iPod/)) {
+    iosSilentModeUnlocked = true;
+    return;
+  }
+
+  // Tiny silent WAV (44 bytes) encoded as a data URI
+  const silentDataURI =
+    'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+
+  const audio = new Audio(silentDataURI);
+  audio.setAttribute('playsinline', 'true');
+  audio.play().then(() => {
+    iosSilentModeUnlocked = true;
+  }).catch(() => {
+    // Ignore – user hasn't interacted yet; will retry on next call
+  });
+}
+
 export async function ensureAudioContext(): Promise<void> {
+  unlockIOSSilentMode();
   const ac = getAudioContext();
   if (ac.state === 'suspended') {
     await ac.resume();
