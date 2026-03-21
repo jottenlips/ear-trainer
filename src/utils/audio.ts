@@ -80,15 +80,16 @@ export function isIOSDevice(): boolean {
 export async function detectIOSSilentMode(): Promise<boolean> {
   if (!isIOSDevice()) return false;
 
-  // Short 200ms 440Hz sine-wave WAV encoded as base64
-  // Generate a tiny WAV with actual audio content so we can detect if it plays
+  // Generate a short silent WAV — no audible tone, but iOS still won't advance
+  // currentTime on an <audio> element when the mute switch is on.
+  // We use a tiny non-zero DC offset (1 LSB) so the audio engine treats it as
+  // real content rather than optimizing it away, but it's completely inaudible.
   const sampleRate = 8000;
   const duration = 0.2;
   const numSamples = Math.floor(sampleRate * duration);
   const buffer = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buffer);
 
-  // WAV header
   const writeString = (offset: number, str: string) => {
     for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
   };
@@ -106,9 +107,9 @@ export async function detectIOSSilentMode(): Promise<boolean> {
   writeString(36, 'data');
   view.setUint32(40, numSamples * 2, true);
 
+  // Fill with 1 LSB — inaudible but non-zero so the audio engine won't skip it
   for (let i = 0; i < numSamples; i++) {
-    const sample = Math.sin(2 * Math.PI * 440 * i / sampleRate) * 0.01; // very quiet
-    view.setInt16(44 + i * 2, sample * 32767, true);
+    view.setInt16(44 + i * 2, 1, true);
   }
 
   const blob = new Blob([buffer], { type: 'audio/wav' });
@@ -116,7 +117,7 @@ export async function detectIOSSilentMode(): Promise<boolean> {
 
   return new Promise<boolean>((resolve) => {
     const audio = new Audio(url);
-    audio.volume = 0.01; // nearly silent
+    audio.volume = 0.01;
     audio.setAttribute('playsinline', 'true');
 
     let resolved = false;
