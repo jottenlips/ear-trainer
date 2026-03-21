@@ -145,6 +145,13 @@ body {
   font-size: 1.1rem;
 }
 
+.silent-mode-hint {
+  color: #ff9800;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
 .instrument-note {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -1157,6 +1164,11 @@ body {
 
 /* iOS Silent Mode Warning */
 .silent-mode-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1164,12 +1176,11 @@ body {
   background: #ff9800;
   color: #000;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   animation: slideDown 0.3s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .silent-mode-warning .dismiss-btn {

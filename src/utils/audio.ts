@@ -80,12 +80,13 @@ export function isIOSDevice(): boolean {
 export async function detectIOSSilentMode(): Promise<boolean> {
   if (!isIOSDevice()) return false;
 
-  // Generate a short silent WAV — no audible tone, but iOS still won't advance
-  // currentTime on an <audio> element when the mute switch is on.
-  // We use a tiny non-zero DC offset (1 LSB) so the audio engine treats it as
-  // real content rather than optimizing it away, but it's completely inaudible.
+  // Use the Web Audio API oscillator approach: play a brief tone through an
+  // OfflineAudioContext and simultaneously through an <audio> element.
+  // On iOS, when the silent switch is on, <audio> elements won't advance
+  // currentTime, but Web Audio still works (with playback category).
+  // We generate a short WAV with actual content so iOS treats it as real audio.
   const sampleRate = 8000;
-  const duration = 0.2;
+  const duration = 0.5; // longer clip for more reliable detection
   const numSamples = Math.floor(sampleRate * duration);
   const buffer = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buffer);
@@ -107,9 +108,11 @@ export async function detectIOSSilentMode(): Promise<boolean> {
   writeString(36, 'data');
   view.setUint32(40, numSamples * 2, true);
 
-  // Fill with 1 LSB — inaudible but non-zero so the audio engine won't skip it
+  // Fill with a low-frequency sine wave — inaudible at low volume but gives
+  // iOS enough signal to properly engage the audio pipeline
   for (let i = 0; i < numSamples; i++) {
-    view.setInt16(44 + i * 2, 1, true);
+    const sample = Math.floor(Math.sin(2 * Math.PI * 200 * i / sampleRate) * 1000);
+    view.setInt16(44 + i * 2, sample, true);
   }
 
   const blob = new Blob([buffer], { type: 'audio/wav' });
@@ -130,21 +133,31 @@ export async function detectIOSSilentMode(): Promise<boolean> {
       resolve(silentMode);
     };
 
-    audio.play().then(() => {
-      // Check if audio is actually progressing after 150ms
-      setTimeout(() => {
-        if (audio.currentTime === 0) {
-          finish(true); // silent mode — audio didn't advance
-        } else {
-          finish(false);
-        }
-      }, 150);
-    }).catch(() => {
-      finish(true); // play was rejected — likely silent mode or no user interaction
-    });
+    // Wait for the audio to be ready before attempting playback
+    audio.addEventListener('canplaythrough', () => {
+      audio.play().then(() => {
+        // Check multiple times for more reliable detection — iOS can be slow
+        // to start advancing currentTime
+        let checks = 0;
+        const checkInterval = setInterval(() => {
+          checks++;
+          if (audio.currentTime > 0) {
+            clearInterval(checkInterval);
+            finish(false); // audio is playing — not in silent mode
+          } else if (checks >= 4) {
+            clearInterval(checkInterval);
+            finish(true); // silent mode — audio never advanced after ~400ms
+          }
+        }, 100);
+      }).catch(() => {
+        // play() rejected — this usually means no user gesture yet, not
+        // silent mode. Don't show a misleading warning.
+        finish(false);
+      });
+    }, { once: true });
 
-    // Fallback timeout
-    setTimeout(() => finish(false), 500);
+    // If canplaythrough never fires, bail out without a false warning
+    setTimeout(() => finish(false), 1000);
   });
 }
 

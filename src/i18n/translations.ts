@@ -8,6 +8,10 @@ const translations = {
     es: 'Entrena tu oído musical con intervalos, acordes, ritmos y progresiones',
   },
   'app.currentInstrument': { en: 'Current instrument:', es: 'Instrumento actual:' },
+  'app.silentModeHint': {
+    en: 'Make sure your phone is not on silent mode so you can hear the audio.',
+    es: 'Asegúrate de que tu teléfono no esté en silencio para poder escuchar el audio.',
+  },
 
   // Exercise types
   'exercise.intervals': { en: 'Intervals', es: 'Intervalos' },

@@ -11,8 +11,6 @@ import {
   ensureAudioContext,
   playProgression,
   playProgressionWithExtensions,
-  isIOSDevice,
-  detectIOSSilentMode,
 } from '../utils/audio';
 import CircleOfFifths from './CircleOfFifths';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -122,15 +120,7 @@ function PlayButton({ label, onClick, playing }: { label: string; onClick: () =>
 export default function PlayingChanges({ instrument }: Props) {
   const navigate = useNavigate();
   const [playing, setPlaying] = useState<string | null>(null);
-  const [silentModeWarning, setSilentModeWarning] = useState(false);
   const { lang } = useLanguage();
-
-  const checkSilentMode = useCallback(async () => {
-    if (isIOSDevice()) {
-      const isSilent = await detectIOSSilentMode();
-      setSilentModeWarning(isSilent);
-    }
-  }, []);
 
   const playExample = useCallback(async (
     id: string,
@@ -140,7 +130,6 @@ export default function PlayingChanges({ instrument }: Props) {
     if (playing) return;
     setPlaying(id);
     await ensureAudioContext();
-    await checkSilentMode();
 
     const prog = buildSecDomProgression('hard', secDom, ROOT_MIDI);
     // Override with specific sound/extensions if requested
@@ -156,7 +145,7 @@ export default function PlayingChanges({ instrument }: Props) {
 
     // Wait for playback to finish (6 chords × 2 beats × 60/75 = ~9.6s)
     setTimeout(() => setPlaying(null), 9800);
-  }, [instrument, playing, checkSilentMode]);
+  }, [instrument, playing]);
 
   const playBlockChords = useCallback(async (
     id: string,
@@ -165,13 +154,12 @@ export default function PlayingChanges({ instrument }: Props) {
     if (playing) return;
     setPlaying(id);
     await ensureAudioContext();
-    await checkSilentMode();
 
     const prog = buildSecDomProgression('hard', secDom, ROOT_MIDI);
     await playProgression(prog.chords, instrument, 75);
 
     setTimeout(() => setPlaying(null), 9800);
-  }, [instrument, playing, checkSilentMode]);
+  }, [instrument, playing]);
 
   const playJustChord = useCallback(async (
     id: string,
@@ -181,7 +169,6 @@ export default function PlayingChanges({ instrument }: Props) {
     if (playing) return;
     setPlaying(id);
     await ensureAudioContext();
-    await checkSilentMode();
 
     // Build the chord + extensions as a quick arpeggio
     const chordMidi = secDom.dominantIntervals.map(i => ROOT_MIDI + i);
@@ -192,7 +179,7 @@ export default function PlayingChanges({ instrument }: Props) {
     await playProgressionWithExtensions(allChords, instrument, 0, extensions, 55);
 
     setTimeout(() => setPlaying(null), 4000);
-  }, [instrument, playing, checkSilentMode]);
+  }, [instrument, playing]);
 
   // Build chord name helper
   const NOTE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -208,12 +195,6 @@ export default function PlayingChanges({ instrument }: Props) {
 
   return (
     <div className="playing-changes">
-      {silentModeWarning && (
-        <div className="silent-mode-warning" onClick={() => setSilentModeWarning(false)}>
-          <span>🔇 Your phone is on silent. Flip the mute switch on the side of your device to hear audio.</span>
-          <button className="dismiss-btn" aria-label="Dismiss">✕</button>
-        </div>
-      )}
       <div className="pc-header">
         <button className="btn btn-secondary" onClick={() => navigate('/')}>{t('pc.back', lang)}</button>
         <h1>{t('pc.title', lang)}</h1>

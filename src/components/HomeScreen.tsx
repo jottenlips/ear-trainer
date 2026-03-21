@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Difficulty, ExerciseType, InstrumentName } from '../types';
-import { ensureAudioContext } from '../utils/audio';
+import { ensureAudioContext, isIOSDevice } from '../utils/audio';
 import { useLanguage } from '../i18n/LanguageContext';
 import { t } from '../i18n/translations';
 import type { TranslationKey } from '../i18n/translations';
@@ -60,6 +60,9 @@ export default function HomeScreen({ instrument }: Props) {
       <div className="hero">
         <h1>{t('app.title', lang)}</h1>
         <p className="subtitle">{t('app.subtitle', lang)}</p>
+        {isIOSDevice() && (
+          <p className="silent-mode-hint">🔊 {t('app.silentModeHint', lang)}</p>
+        )}
         <p className="instrument-note">{t('app.currentInstrument', lang)} <strong>{t(`instrument.${instrument}` as TranslationKey, lang)}</strong></p>
       </div>
 
