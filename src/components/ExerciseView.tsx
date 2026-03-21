@@ -9,6 +9,16 @@ import RhythmChoiceNotation from './RhythmChoiceNotation';
 import { useLanguage } from '../i18n/LanguageContext';
 import { t, tInterval, tChord, tInversion, tSound } from '../i18n/translations';
 
+// iOS Safari blocks speechSynthesis.speak() outside user-gesture context.
+// Warm up the engine on a real tap so queued utterances work in auto mode.
+function warmUpSpeechSynthesis() {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const warm = new SpeechSynthesisUtterance('');
+  warm.volume = 0;
+  window.speechSynthesis.speak(warm);
+}
+
 function speakAnswer(text: string): Promise<void> {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
@@ -323,6 +333,17 @@ export default function ExerciseView({ instrument }: Props) {
     };
   }, []);
 
+  // iOS Safari keep-alive: periodically resume speechSynthesis so it stays active
+  useEffect(() => {
+    if (!autoMode || !('speechSynthesis' in window)) return;
+    const interval = setInterval(() => {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 250);
+    return () => clearInterval(interval);
+  }, [autoMode]);
+
   // Auto-play on new question (only when NOT in auto mode — auto mode handles its own playback)
   useEffect(() => {
     if (question && !autoMode) {
@@ -439,6 +460,10 @@ export default function ExerciseView({ instrument }: Props) {
         <button
           className={`btn btn-extensions-toggle ${autoMode ? 'active' : ''}`}
           onClick={() => {
+            if (!autoMode) {
+              // Turning on — warm up speech synthesis from user gesture context (iOS Safari)
+              warmUpSpeechSynthesis();
+            }
             setAutoMode(prev => !prev);
             if (autoMode) {
               // Turning off — cancel cycle and reset
