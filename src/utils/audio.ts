@@ -68,6 +68,85 @@ function unlockIOSSilentMode(): void {
   });
 }
 
+/**
+ * Detect if iOS silent mode is blocking audio.
+ * Plays a short tone via an <audio> element and checks if playback actually
+ * progresses. Returns true if silent mode appears to be on.
+ */
+export function isIOSDevice(): boolean {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent);
+}
+
+export async function detectIOSSilentMode(): Promise<boolean> {
+  if (!isIOSDevice()) return false;
+
+  // Short 200ms 440Hz sine-wave WAV encoded as base64
+  // Generate a tiny WAV with actual audio content so we can detect if it plays
+  const sampleRate = 8000;
+  const duration = 0.2;
+  const numSamples = Math.floor(sampleRate * duration);
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  // WAV header
+  const writeString = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  for (let i = 0; i < numSamples; i++) {
+    const sample = Math.sin(2 * Math.PI * 440 * i / sampleRate) * 0.01; // very quiet
+    view.setInt16(44 + i * 2, sample * 32767, true);
+  }
+
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise<boolean>((resolve) => {
+    const audio = new Audio(url);
+    audio.volume = 0.01; // nearly silent
+    audio.setAttribute('playsinline', 'true');
+
+    let resolved = false;
+    const finish = (silentMode: boolean) => {
+      if (resolved) return;
+      resolved = true;
+      URL.revokeObjectURL(url);
+      audio.pause();
+      audio.src = '';
+      resolve(silentMode);
+    };
+
+    audio.play().then(() => {
+      // Check if audio is actually progressing after 150ms
+      setTimeout(() => {
+        if (audio.currentTime === 0) {
+          finish(true); // silent mode — audio didn't advance
+        } else {
+          finish(false);
+        }
+      }, 150);
+    }).catch(() => {
+      finish(true); // play was rejected — likely silent mode or no user interaction
+    });
+
+    // Fallback timeout
+    setTimeout(() => finish(false), 500);
+  });
+}
+
 export async function ensureAudioContext(): Promise<void> {
   unlockIOSSilentMode();
   const ac = getAudioContext();

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import type { Difficulty, ExerciseType, InstrumentName, Question, ScoreState } from '../types';
 import { generateQuestion } from '../utils/questions';
-import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgression, playProgressionWithExtensionNote, playProgressionWithExtensions } from '../utils/audio';
+import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgression, playProgressionWithExtensionNote, playProgressionWithExtensions, detectIOSSilentMode, isIOSDevice } from '../utils/audio';
 import NotationDisplay from './NotationDisplay';
 import RhythmChoiceNotation from './RhythmChoiceNotation';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -41,6 +41,7 @@ export default function ExerciseView({ instrument }: Props) {
   const [metronome, setMetronome] = useState(true);
   const [sheetMusic, setSheetMusic] = useState(false);
   const [polyVoices, setPolyVoices] = useState<[number, number]>(randomPolyVoices());
+  const [silentModeWarning, setSilentModeWarning] = useState(false);
 
   // Part 2 state (sound / groove identification)
   const [soundSelected, setSoundSelected] = useState<string | null>(null);
@@ -68,6 +69,13 @@ export default function ExerciseView({ instrument }: Props) {
   const handlePlay = async () => {
     if (!question || isPlaying) return;
     setIsPlaying(true);
+
+    // Check for iOS silent mode on first play
+    if (isIOSDevice()) {
+      const isSilent = await detectIOSSilentMode();
+      setSilentModeWarning(isSilent);
+    }
+
     try {
       switch (exerciseType) {
         case 'intervals':
@@ -217,6 +225,13 @@ export default function ExerciseView({ instrument }: Props) {
           )}
         </div>
       </div>
+
+      {silentModeWarning && (
+        <div className="silent-mode-warning" onClick={() => setSilentModeWarning(false)}>
+          <span>🔇 Your phone is on silent. Flip the mute switch on the side of your device to hear audio.</span>
+          <button className="dismiss-btn" aria-label="Dismiss">✕</button>
+        </div>
+      )}
 
       <h2 className="exercise-prompt">{translatedPrompt}</h2>
 
