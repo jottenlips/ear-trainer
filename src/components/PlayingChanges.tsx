@@ -9,6 +9,7 @@ import {
 } from '../utils/music';
 import {
   ensureAudioContext,
+  isIOSDevice,
   playProgression,
   playProgressionWithExtensions,
 } from '../utils/audio';
@@ -204,6 +205,9 @@ export default function PlayingChanges({ instrument }: Props) {
         <p className="pc-subtitle">
           {t('pc.subtitle', lang)}
         </p>
+        {isIOSDevice() && (
+          <p className="silent-mode-hint">🔊 {t('app.silentModeHint', lang)}</p>
+        )}
       </div>
 
       {/* What is a secondary dominant */}
