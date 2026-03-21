@@ -74,6 +74,153 @@ export function getChordsForDifficulty(difficulty: Difficulty): ChordQuality[] {
   }
 }
 
+// === Inversions ===
+
+export interface InversionChord {
+  name: string;           // e.g. "Major"
+  intervals: number[];    // semitones from root in root position
+  abbreviation: string;
+}
+
+export interface Inversion {
+  label: string;          // e.g. "Major - 1st Inversion"
+  chordName: string;      // e.g. "Major"
+  inversionName: string;  // e.g. "1st Inversion"
+  // Returns MIDI notes for a given bass note MIDI value
+  buildNotes: (bassMidi: number) => number[];
+}
+
+// Build inversions from a chord's interval set
+function makeInversions(name: string, intervals: number[]): Inversion[] {
+  const result: Inversion[] = [];
+  const n = intervals.length;
+  // Root position
+  result.push({
+    label: `${name} - Root Position`,
+    chordName: name,
+    inversionName: 'Root Position',
+    buildNotes: (bass) => intervals.map(i => bass + i),
+  });
+  // 1st inversion: move root up an octave
+  result.push({
+    label: `${name} - 1st Inversion`,
+    chordName: name,
+    inversionName: '1st Inversion',
+    buildNotes: (bass) => {
+      // bass is the 2nd note of the chord (the 3rd), root goes up
+      const notes = intervals.map(i => bass - intervals[1] + i);
+      notes[0] += 12; // move root up
+      return notes.sort((a, b) => a - b);
+    },
+  });
+  // 2nd inversion: move root and 3rd up an octave
+  result.push({
+    label: `${name} - 2nd Inversion`,
+    chordName: name,
+    inversionName: '2nd Inversion',
+    buildNotes: (bass) => {
+      // bass is the 3rd note of the chord (the 5th)
+      const notes = intervals.map(i => bass - intervals[2] + i);
+      notes[0] += 12;
+      notes[1] += 12;
+      return notes.sort((a, b) => a - b);
+    },
+  });
+  // 3rd inversion (only for 7th chords and above — 4+ notes)
+  if (n >= 4) {
+    result.push({
+      label: `${name} - 3rd Inversion`,
+      chordName: name,
+      inversionName: '3rd Inversion',
+      buildNotes: (bass) => {
+        // bass is the 4th note (the 7th)
+        const notes = intervals.map(i => bass - intervals[3] + i);
+        notes[0] += 12;
+        notes[1] += 12;
+        notes[2] += 12;
+        return notes.sort((a, b) => a - b);
+      },
+    });
+  }
+  return result;
+}
+
+const TRIAD_TYPES: { name: string; intervals: number[] }[] = [
+  { name: 'Major', intervals: [0, 4, 7] },
+  { name: 'Minor', intervals: [0, 3, 7] },
+  { name: 'Augmented', intervals: [0, 4, 8] },
+  { name: 'Diminished', intervals: [0, 3, 6] },
+];
+
+const SEVENTH_TYPES: { name: string; intervals: number[] }[] = [
+  { name: 'Major 7th', intervals: [0, 4, 7, 11] },
+  { name: 'Dominant 7th', intervals: [0, 4, 7, 10] },
+  { name: 'Minor 7th', intervals: [0, 3, 7, 10] },
+  { name: 'Diminished 7th', intervals: [0, 3, 6, 9] },
+  { name: 'Half-Diminished 7th', intervals: [0, 3, 6, 10] },
+];
+
+// Extensions to add on top of 7th chords for hard mode
+const EXTENSION_INTERVALS = [
+  { name: '9', semitones: 14 },
+  { name: 'b9', semitones: 13 },
+  { name: '#9', semitones: 15 },
+  { name: '#11', semitones: 18 },
+  { name: '13', semitones: 21 },
+  { name: 'b13', semitones: 20 },
+];
+
+function makeExtendedInversions(name: string, baseIntervals: number[], extSemitones: number): Inversion[] {
+  // Extended chords: root, 1st, 2nd, 3rd inversions (same as 7th chords — extension stays on top)
+  return makeInversions(name, baseIntervals).map(inv => ({
+    ...inv,
+    label: inv.label.replace(name, name), // keep the name
+    buildNotes: (bass) => {
+      const baseNotes = inv.buildNotes(bass);
+      // Add the extension above the highest note
+      const root = Math.min(...baseNotes);
+      const extNote = root + extSemitones;
+      // Ensure extension is above the bass
+      const adjusted = extNote <= bass ? extNote + 12 : extNote;
+      return [...baseNotes, adjusted].sort((a, b) => a - b);
+    },
+  }));
+}
+
+export function getInversionsForDifficulty(difficulty: Difficulty): Inversion[] {
+  switch (difficulty) {
+    case 'easy': {
+      // Triads: root position, 1st, 2nd inversions for maj, min, aug, dim
+      return TRIAD_TYPES.flatMap(ct => makeInversions(ct.name, ct.intervals));
+    }
+    case 'medium': {
+      // 7th chords: root, 1st, 2nd, 3rd inversions
+      return SEVENTH_TYPES.flatMap(ct => makeInversions(ct.name, ct.intervals));
+    }
+    case 'hard': {
+      // 7th chords with one extension on top
+      const result: Inversion[] = [];
+      for (const ct of SEVENTH_TYPES) {
+        // All extensions: 9, b9, #9, #11, 13, b13
+        const exts = ct.name === 'Diminished 7th'
+          ? EXTENSION_INTERVALS.filter(e => ['9', 'b9'].includes(e.name))
+          : EXTENSION_INTERVALS; // all six: 9, b9, #9, #11, 13, b13
+        for (const ext of exts) {
+          const extName = `${ct.name}(${ext.name})`;
+          result.push(...makeExtendedInversions(extName, ct.intervals, ext.semitones));
+        }
+      }
+      return result;
+    }
+  }
+}
+
+/** Get all unique inversion names (Root Position, 1st, 2nd, 3rd) for a difficulty */
+export function getInversionNames(difficulty: Difficulty): string[] {
+  if (difficulty === 'easy') return ['Root Position', '1st Inversion', '2nd Inversion'];
+  return ['Root Position', '1st Inversion', '2nd Inversion', '3rd Inversion'];
+}
+
 // Note names and MIDI mapping
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 

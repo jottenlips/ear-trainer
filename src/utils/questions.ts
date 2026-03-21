@@ -2,6 +2,8 @@ import type { Difficulty, Question, ExerciseType } from '../types';
 import {
   getIntervalsForDifficulty,
   getChordsForDifficulty,
+  getInversionsForDifficulty,
+  getInversionNames,
   getRhythmPatterns,
   getGrooveNames,
   getRandomRoot,
@@ -179,10 +181,48 @@ export function generateSecondaryDominantQuestion(difficulty: Difficulty): Quest
   };
 }
 
+export function generateInversionQuestion(difficulty: Difficulty): Question {
+  const inversions = getInversionsForDifficulty(difficulty);
+  const correct = inversions[Math.floor(Math.random() * inversions.length)];
+
+  // Random bass note in a comfortable range
+  const bassMidi = 48 + Math.floor(Math.random() * 12); // C3 to B3
+  const chordNotes = correct.buildNotes(bassMidi);
+  const noteNames = chordNotes.map(m => midiToNoteName(m));
+  const vexKeys = chordNotes.map(m => noteToVexKey(midiToNoteName(m)));
+
+  // The answer is the inversion name (Root Position, 1st Inversion, etc.)
+  const correctAnswer = correct.inversionName;
+
+  // Distractors: other inversion names available at this difficulty
+  const allInversionNames = getInversionNames(difficulty);
+  const distractorNames = allInversionNames.filter(n => n !== correctAnswer);
+  const choices = shuffle([correctAnswer, ...distractorNames]);
+
+  const bassNote = midiToNoteName(Math.min(...chordNotes));
+  const bassLetter = bassNote.replace(/\d+$/, '');
+
+  return {
+    type: 'inversions',
+    prompt: `${correct.chordName} chord — what inversion? (Bass: ${bassLetter})`,
+    promptKey: 'inversion',
+    promptRoot: bassLetter,
+    correctAnswer,
+    choices,
+    noteData: {
+      notes: noteNames,
+      keys: [vexKeys],
+      vexDurations: ['w'],
+    },
+    inversionChordName: correct.chordName,
+  };
+}
+
 export function generateQuestion(type: ExerciseType, difficulty: Difficulty): Question {
   switch (type) {
     case 'intervals': return generateIntervalQuestion(difficulty);
     case 'chords': return generateChordQuestion(difficulty);
+    case 'inversions': return generateInversionQuestion(difficulty);
     case 'rhythm': return generateRhythmQuestion(difficulty);
     case 'secondary-dominants': return generateSecondaryDominantQuestion(difficulty);
   }

@@ -658,6 +658,33 @@ body {
   color: var(--error);
 }
 
+/* === Auto Mode === */
+.auto-mode-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+  width: 100%;
+}
+
+.auto-phase {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.auto-phase.thinking {
+  color: var(--warning);
+  font-size: 1.5rem;
+}
+
+.auto-phase.revealing {
+  color: var(--primary);
+  font-size: 1.6rem;
+  animation: none;
+}
+
 /* === Loading === */
 .loading-text {
   color: var(--text-muted);

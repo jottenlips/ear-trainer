@@ -24,6 +24,12 @@ const EXERCISES: { type: ExerciseType; titleKey: TranslationKey; descKey: Transl
     icon: '♫',
   },
   {
+    type: 'inversions',
+    titleKey: 'exercise.inversions',
+    descKey: 'exercise.inversions.desc',
+    icon: '🔄',
+  },
+  {
     type: 'rhythm',
     titleKey: 'exercise.rhythm',
     descKey: 'exercise.rhythm.desc',
@@ -121,6 +127,13 @@ export default function HomeScreen({ instrument }: Props) {
                 <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.chords.easy', lang)}</p>
                 <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.chords.medium', lang)}</p>
                 <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.chords.hard', lang)}</p>
+              </>
+            )}
+            {selectedType === 'inversions' && (
+              <>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.inversions.easy', lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.inversions.medium', lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.inversions.hard', lang)}</p>
               </>
             )}
             {selectedType === 'rhythm' && (

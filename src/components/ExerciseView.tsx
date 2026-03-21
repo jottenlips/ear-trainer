@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import type { Difficulty, ExerciseType, InstrumentName, Question, ScoreState } from '../types';
@@ -7,7 +7,24 @@ import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgress
 import NotationDisplay from './NotationDisplay';
 import RhythmChoiceNotation from './RhythmChoiceNotation';
 import { useLanguage } from '../i18n/LanguageContext';
-import { t, tInterval, tChord, tSound } from '../i18n/translations';
+import { t, tInterval, tChord, tInversion, tSound } from '../i18n/translations';
+
+function speakAnswer(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!('speechSynthesis' in window)) {
+      resolve();
+      return;
+    }
+    // Cancel any in-progress speech
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 0.6;
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+    window.speechSynthesis.speak(utterance);
+  });
+}
 
 const EXTENSION_NAMES: Record<number, string> = {
   1: 'b9', 2: '9', 3: '#9', 5: '11', 6: '#11', 8: 'b13', 9: '13',
@@ -46,6 +63,11 @@ export default function ExerciseView({ instrument }: Props) {
   const [soundRevealed, setSoundRevealed] = useState(false);
   const [grooveSelected, setGrooveSelected] = useState<string | null>(null);
   const [grooveRevealed, setGrooveRevealed] = useState(false);
+  // Auto mode state
+  const [autoMode, setAutoMode] = useState(false);
+  const [autoPhase, setAutoPhase] = useState<'idle' | 'playing' | 'thinking' | 'revealing' | 'pausing'>('idle');
+  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCancelledRef = useRef(false);
 
   const newQuestion = useCallback(() => {
     setQuestion(generateQuestion(exerciseType, difficulty));
@@ -74,6 +96,7 @@ export default function ExerciseView({ instrument }: Props) {
           await playInterval(question.noteData!.notes[0], question.noteData!.notes[1], instrument);
           break;
         case 'chords':
+        case 'inversions':
           await playChord(question.noteData!.notes, instrument);
           break;
         case 'rhythm': {
@@ -113,6 +136,7 @@ export default function ExerciseView({ instrument }: Props) {
   const translateChoice = (choice: string): string => {
     if (exerciseType === 'intervals') return tInterval(choice, lang);
     if (exerciseType === 'chords') return tChord(choice, lang);
+    if (exerciseType === 'inversions') return tInversion(choice, lang);
     return choice;
   };
 
@@ -170,9 +194,117 @@ export default function ExerciseView({ instrument }: Props) {
     newQuestion();
   };
 
-  // Auto-play on new question
+  // Get the speakable answer text for the current question
+  const getAnswerText = useCallback((q: Question): string => {
+    if (exerciseType === 'secondary-dominants' && q.secDomChordName && q.targetChordName) {
+      return `${q.secDomChordName} to ${q.targetChordName}`;
+    }
+    return q.correctAnswer;
+  }, [exerciseType]);
+
+  // Auto mode cycle: play → wait 3s → speak answer → wait 2s → next
   useEffect(() => {
-    if (question) {
+    if (!autoMode || !question) {
+      setAutoPhase('idle');
+      return;
+    }
+
+    autoCancelledRef.current = false;
+
+    const runCycle = async () => {
+      // Phase: playing
+      setAutoPhase('playing');
+      // Small delay before playing to let state settle
+      await new Promise(r => { autoTimerRef.current = setTimeout(r, 400); });
+      if (autoCancelledRef.current) return;
+
+      // Play the question
+      try {
+        switch (exerciseType) {
+          case 'intervals':
+            await playInterval(question.noteData!.notes[0], question.noteData!.notes[1], instrument);
+            break;
+          case 'chords':
+          case 'inversions':
+            await playChord(question.noteData!.notes, instrument);
+            break;
+          case 'rhythm': {
+            const matchingChoice = question.rhythmChoices?.find(rc => rc.label === question.correctAnswer);
+            if (matchingChoice?.layers) {
+              await playRhythmDrum(question.noteData!.durations!, matchingChoice.layers, rhythmBpm, metronome, polyVoices);
+            } else {
+              await playRhythmDrum(question.noteData!.durations!, undefined, rhythmBpm, metronome);
+            }
+            break;
+          }
+          case 'secondary-dominants':
+            if (question.progressionChords) {
+              const hasExt = showExtensions && question.secDomExtensions && question.secDomIndex !== undefined;
+              if (hasExt && showArpeggio) {
+                await playProgressionWithExtensions(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
+              } else if (hasExt) {
+                await playProgressionWithExtensionNote(question.progressionChords, instrument, question.secDomIndex!, question.secDomExtensions!);
+              } else {
+                await playProgression(question.progressionChords, instrument);
+              }
+            }
+            break;
+        }
+      } catch { /* ignore playback errors */ }
+      if (autoCancelledRef.current) return;
+
+      // Phase: thinking (3 seconds)
+      setAutoPhase('thinking');
+      await new Promise(r => { autoTimerRef.current = setTimeout(r, 3000); });
+      if (autoCancelledRef.current) return;
+
+      // Phase: revealing — speak the answer
+      setAutoPhase('revealing');
+      setSelected(question.correctAnswer);
+      setRevealed(true);
+      if (exerciseType === 'secondary-dominants') {
+        setSoundSelected(question.secDomSound ?? null);
+        setSoundRevealed(true);
+      }
+      if (question.grooveName && question.grooveChoices) {
+        setGrooveSelected(question.grooveName);
+        setGrooveRevealed(true);
+      }
+
+      await speakAnswer(getAnswerText(question));
+      if (autoCancelledRef.current) return;
+
+      // Phase: pausing (2 seconds before next)
+      setAutoPhase('pausing');
+      await new Promise(r => { autoTimerRef.current = setTimeout(r, 2000); });
+      if (autoCancelledRef.current) return;
+
+      // Next question
+      newQuestion();
+    };
+
+    runCycle();
+
+    return () => {
+      autoCancelledRef.current = true;
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+      window.speechSynthesis?.cancel();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoMode, question]);
+
+  // Clean up auto mode on unmount
+  useEffect(() => {
+    return () => {
+      autoCancelledRef.current = true;
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  // Auto-play on new question (only when NOT in auto mode — auto mode handles its own playback)
+  useEffect(() => {
+    if (question && !autoMode) {
       const timer = setTimeout(handlePlay, 300);
       return () => clearTimeout(timer);
     }
@@ -190,6 +322,7 @@ export default function ExerciseView({ instrument }: Props) {
     if (question.promptKey) {
       if (question.promptKey === 'interval') return t('prompt.interval', lang);
       if (question.promptKey === 'chord') return `${t('prompt.chord', lang)} (${t('prompt.root', lang)} ${question.promptRoot})`;
+      if (question.promptKey === 'inversion') return `${question.inversionChordName} — ${t('prompt.inversion', lang)} (${t('prompt.bass', lang)} ${question.promptRoot})`;
       if (question.promptKey === 'rhythm') return t('prompt.rhythm', lang);
       if (question.promptKey === 'beat') return t('prompt.beat', lang);
       if (question.promptKey === 'secdom') return `${t('prompt.keyOf', lang)} ${question.promptRoot} ${t('prompt.major', lang)} — ${t('prompt.secdom', lang)}`;
@@ -228,7 +361,7 @@ export default function ExerciseView({ instrument }: Props) {
           revealed={revealed}
         />
       )}
-      {exerciseType === 'chords' && revealed && question.noteData && (
+      {(exerciseType === 'chords' || exerciseType === 'inversions') && revealed && question.noteData && (
         <NotationDisplay
           noteData={question.noteData}
           exerciseType={exerciseType}
@@ -278,9 +411,24 @@ export default function ExerciseView({ instrument }: Props) {
         <button
           className="btn btn-play"
           onClick={handlePlay}
-          disabled={isPlaying}
+          disabled={isPlaying || autoMode}
         >
           {isPlaying ? t('exercise.playing', lang) : t('exercise.playAgain', lang)}
+        </button>
+        <button
+          className={`btn btn-extensions-toggle ${autoMode ? 'active' : ''}`}
+          onClick={() => {
+            setAutoMode(prev => !prev);
+            if (autoMode) {
+              // Turning off — cancel cycle and reset
+              autoCancelledRef.current = true;
+              if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+              window.speechSynthesis?.cancel();
+              setAutoPhase('idle');
+            }
+          }}
+        >
+          {autoMode ? t('exercise.autoModeOn', lang) : t('exercise.autoModeOff', lang)}
         </button>
         {isSecDom && (
           <button
@@ -330,148 +478,163 @@ export default function ExerciseView({ instrument }: Props) {
         )}
       </div>
 
+      {/* Auto mode status */}
+      {autoMode && (
+        <div className="auto-mode-status">
+          {autoPhase === 'playing' && <span className="auto-phase">♪ ...</span>}
+          {autoPhase === 'thinking' && <span className="auto-phase thinking">{t('exercise.autoThinking', lang)}</span>}
+          {autoPhase === 'revealing' && <span className="auto-phase revealing">{t('exercise.autoRevealing', lang)} {translateChoice(question.correctAnswer)}</span>}
+          {autoPhase === 'pausing' && <span className="auto-phase revealing">{translateChoice(question.correctAnswer)}</span>}
+        </div>
+      )}
+
       {/* Part 1: Chord identification */}
-      {isRhythm && question.rhythmChoices ? (
-        <div className="rhythm-choices-grid">
-          {question.rhythmChoices.map((rc, idx) => {
-            let className = 'rhythm-choice-card';
-            if (revealed && rc.label === question.correctAnswer) {
-              className += ' correct';
-            } else if (eliminated.has(rc.label)) {
-              className += ' eliminated';
-            }
-
-            return (
-              <button
-                key={idx}
-                className={className}
-                onClick={() => handleAnswer(rc.label)}
-                disabled={revealed || eliminated.has(rc.label)}
-              >
-                <RhythmChoiceNotation choice={rc} useNotation={rc.layers ? sheetMusic : true} />
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="choices-grid">
-          {question.choices.map(choice => {
-            let className = 'btn btn-choice';
-            if (revealed) {
-              if (choice === question.correctAnswer) {
-                className += ' correct';
-              } else if (choice === selected) {
-                className += ' incorrect';
-              }
-            } else if (choice === selected) {
-              className += ' selected';
-            }
-
-            return (
-              <button
-                key={choice}
-                className={className}
-                onClick={() => handleAnswer(choice)}
-                disabled={revealed}
-              >
-                {translateChoice(choice)}
-                {isSecDom && question.choiceChordNames?.[choice] && (
-                  <span className="choice-chord-name"> ({question.choiceChordNames[choice]})</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Part 2: Sound identification (when extensions on, directly under Part 1 choices) */}
-      {revealed && showExtensions && isSecDom && (
+      {/* Choices — hidden in auto mode */}
+      {!autoMode && (
         <>
-          <p className="part2-prompt">{t('exercise.soundPrompt', lang)}</p>
-          <div className="choices-grid sound-choices-grid">
-            {SOUND_CHOICES.map(sound => {
-              let className = 'btn btn-choice';
-              if (soundRevealed) {
-                if (sound === question.secDomSound) {
+          {isRhythm && question.rhythmChoices ? (
+            <div className="rhythm-choices-grid">
+              {question.rhythmChoices.map((rc, idx) => {
+                let className = 'rhythm-choice-card';
+                if (revealed && rc.label === question.correctAnswer) {
                   className += ' correct';
-                } else if (sound === soundSelected) {
-                  className += ' incorrect';
+                } else if (eliminated.has(rc.label)) {
+                  className += ' eliminated';
                 }
-              }
-              return (
-                <button
-                  key={sound}
-                  className={className}
-                  onClick={() => handleSoundAnswer(sound)}
-                  disabled={soundRevealed}
-                >
-                  {tSound(sound, lang)}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
 
-      {/* Part 2: Groove identification (for rhythm patterns with named grooves) */}
-      {revealed && hasGrooveQuestion && (
-        <>
-          <p className="part2-prompt">{t('exercise.groovePrompt', lang)}</p>
-          <div className="choices-grid sound-choices-grid">
-            {question.grooveChoices!.map(groove => {
-              let className = 'btn btn-choice';
-              if (grooveRevealed) {
-                if (groove === question.grooveName) {
-                  className += ' correct';
-                } else if (groove === grooveSelected) {
-                  className += ' incorrect';
+                return (
+                  <button
+                    key={idx}
+                    className={className}
+                    onClick={() => handleAnswer(rc.label)}
+                    disabled={revealed || eliminated.has(rc.label)}
+                  >
+                    <RhythmChoiceNotation choice={rc} useNotation={rc.layers ? sheetMusic : true} />
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="choices-grid">
+              {question.choices.map(choice => {
+                let className = 'btn btn-choice';
+                if (revealed) {
+                  if (choice === question.correctAnswer) {
+                    className += ' correct';
+                  } else if (choice === selected) {
+                    className += ' incorrect';
+                  }
+                } else if (choice === selected) {
+                  className += ' selected';
                 }
-              }
-              return (
-                <button
-                  key={groove}
-                  className={className}
-                  onClick={() => handleGrooveAnswer(groove)}
-                  disabled={grooveRevealed}
-                >
-                  {groove}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
 
-      {/* Result section */}
-      {isFullyRevealed && (
-        <div className="result-section">
-          <p className={`result-text ${(isRhythm ? firstTry : selected === question.correctAnswer) ? 'correct' : 'incorrect'}`}>
-            {(isRhythm ? firstTry : selected === question.correctAnswer)
-              ? (isSecDom && question.secDomChordName
-                  ? `${t('exercise.correct', lang)} ${question.secDomChordName} → ${question.targetChordName}`
-                  : t('exercise.correct', lang))
-              : isRhythm
-                ? t('exercise.gotIt', lang)
-                : isSecDom && question.secDomChordName
-                  ? `${t('result.incorrect', lang)} ${question.secDomChordName} → ${question.targetChordName}`
-                  : `${t('result.incorrect', lang)} ${translateChoice(question.correctAnswer)}`}
-          </p>
-          {isSecDom && soundRevealed && question.secDomSound && (
-            <p className={`sound-category ${soundSelected === question.secDomSound ? 'correct' : 'incorrect'}`}>
-              {t('exercise.sound', lang)} {tSound(question.secDomSound, lang)}
-              {soundSelected === question.secDomSound ? ' ✓' : ` (${t('exercise.youPicked', lang)} ${tSound(soundSelected!, lang)})`}
-            </p>
+                return (
+                  <button
+                    key={choice}
+                    className={className}
+                    onClick={() => handleAnswer(choice)}
+                    disabled={revealed}
+                  >
+                    {translateChoice(choice)}
+                    {isSecDom && question.choiceChordNames?.[choice] && (
+                      <span className="choice-chord-name"> ({question.choiceChordNames[choice]})</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
-          {isRhythm && grooveRevealed && question.grooveName && (
-            <p className={`sound-category ${grooveSelected === question.grooveName ? 'correct' : 'incorrect'}`}>
-              {t('exercise.groove', lang)} {question.grooveName}
-              {grooveSelected === question.grooveName ? ' ✓' : ` (${t('exercise.youPicked', lang)} ${grooveSelected})`}
-            </p>
+
+          {/* Part 2: Sound identification (when extensions on, directly under Part 1 choices) */}
+          {revealed && showExtensions && isSecDom && (
+            <>
+              <p className="part2-prompt">{t('exercise.soundPrompt', lang)}</p>
+              <div className="choices-grid sound-choices-grid">
+                {SOUND_CHOICES.map(sound => {
+                  let className = 'btn btn-choice';
+                  if (soundRevealed) {
+                    if (sound === question.secDomSound) {
+                      className += ' correct';
+                    } else if (sound === soundSelected) {
+                      className += ' incorrect';
+                    }
+                  }
+                  return (
+                    <button
+                      key={sound}
+                      className={className}
+                      onClick={() => handleSoundAnswer(sound)}
+                      disabled={soundRevealed}
+                    >
+                      {tSound(sound, lang)}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           )}
-          <button className="btn btn-primary" onClick={handleNext}>
-            {t('exercise.nextQuestion', lang)}
-          </button>
-        </div>
+
+          {/* Part 2: Groove identification (for rhythm patterns with named grooves) */}
+          {revealed && hasGrooveQuestion && (
+            <>
+              <p className="part2-prompt">{t('exercise.groovePrompt', lang)}</p>
+              <div className="choices-grid sound-choices-grid">
+                {question.grooveChoices!.map(groove => {
+                  let className = 'btn btn-choice';
+                  if (grooveRevealed) {
+                    if (groove === question.grooveName) {
+                      className += ' correct';
+                    } else if (groove === grooveSelected) {
+                      className += ' incorrect';
+                    }
+                  }
+                  return (
+                    <button
+                      key={groove}
+                      className={className}
+                      onClick={() => handleGrooveAnswer(groove)}
+                      disabled={grooveRevealed}
+                    >
+                      {groove}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Result section */}
+          {isFullyRevealed && (
+            <div className="result-section">
+              <p className={`result-text ${(isRhythm ? firstTry : selected === question.correctAnswer) ? 'correct' : 'incorrect'}`}>
+                {(isRhythm ? firstTry : selected === question.correctAnswer)
+                  ? (isSecDom && question.secDomChordName
+                      ? `${t('exercise.correct', lang)} ${question.secDomChordName} → ${question.targetChordName}`
+                      : t('exercise.correct', lang))
+                  : isRhythm
+                    ? t('exercise.gotIt', lang)
+                    : isSecDom && question.secDomChordName
+                      ? `${t('result.incorrect', lang)} ${question.secDomChordName} → ${question.targetChordName}`
+                      : `${t('result.incorrect', lang)} ${translateChoice(question.correctAnswer)}`}
+              </p>
+              {isSecDom && soundRevealed && question.secDomSound && (
+                <p className={`sound-category ${soundSelected === question.secDomSound ? 'correct' : 'incorrect'}`}>
+                  {t('exercise.sound', lang)} {tSound(question.secDomSound, lang)}
+                  {soundSelected === question.secDomSound ? ' ✓' : ` (${t('exercise.youPicked', lang)} ${tSound(soundSelected!, lang)})`}
+                </p>
+              )}
+              {isRhythm && grooveRevealed && question.grooveName && (
+                <p className={`sound-category ${grooveSelected === question.grooveName ? 'correct' : 'incorrect'}`}>
+                  {t('exercise.groove', lang)} {question.grooveName}
+                  {grooveSelected === question.grooveName ? ' ✓' : ` (${t('exercise.youPicked', lang)} ${grooveSelected})`}
+                </p>
+              )}
+              <button className="btn btn-primary" onClick={handleNext}>
+                {t('exercise.nextQuestion', lang)}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

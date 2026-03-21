@@ -18,6 +18,8 @@ const translations = {
   'exercise.intervals.desc': { en: 'Identify intervals up to 2 octaves', es: 'Identifica intervalos hasta 2 octavas' },
   'exercise.chords': { en: 'Chord Quality', es: 'Calidad de Acorde' },
   'exercise.chords.desc': { en: 'Identify chord types by ear', es: 'Identifica tipos de acordes de oído' },
+  'exercise.inversions': { en: 'Inversions', es: 'Inversiones' },
+  'exercise.inversions.desc': { en: 'Identify chord inversions by ear', es: 'Identifica inversiones de acordes de oído' },
   'exercise.rhythm': { en: 'Rhythm', es: 'Ritmo' },
   'exercise.rhythm.desc': { en: 'Identify rhythm patterns', es: 'Identifica patrones rítmicos' },
   'exercise.secondaryDominants': { en: 'Secondary Dominants', es: 'Dominantes Secundarios' },
@@ -58,6 +60,20 @@ const translations = {
   'difficulty.chords.hard': {
     en: '+ Dim7, Half-Dim7, Aug7, Sus2, Sus4',
     es: '+ Dim7, Semi-Dim7, Aug7, Sus2, Sus4',
+  },
+
+  // Difficulty info - inversions
+  'difficulty.inversions.easy': {
+    en: 'Triad inversions (Major, Minor, Aug, Dim)',
+    es: 'Inversiones de tríadas (Mayor, Menor, Aum, Dis)',
+  },
+  'difficulty.inversions.medium': {
+    en: '7th chord inversions (Maj7, Dom7, Min7, Dim7, Half-Dim7)',
+    es: 'Inversiones de acordes de 7ª (Maj7, Dom7, Min7, Dim7, Semi-Dim7)',
+  },
+  'difficulty.inversions.hard': {
+    en: '7th chords with extensions (9, #11, 13)',
+    es: 'Acordes de 7ª con extensiones (9, #11, 13)',
   },
 
   // Difficulty info - rhythm
@@ -117,6 +133,8 @@ const translations = {
   'prompt.interval': { en: 'What interval is this?', es: '¿Qué intervalo es este?' },
   'prompt.chord': { en: 'What chord quality is this?', es: '¿Qué calidad de acorde es esta?' },
   'prompt.root': { en: 'Root:', es: 'Raíz:' },
+  'prompt.inversion': { en: 'What inversion is this?', es: '¿Qué inversión es esta?' },
+  'prompt.bass': { en: 'Bass:', es: 'Bajo:' },
   'prompt.rhythm': { en: 'What rhythm pattern do you hear?', es: '¿Qué patrón rítmico escuchas?' },
   'prompt.beat': { en: 'What beat do you hear?', es: '¿Qué ritmo escuchas?' },
   'prompt.secdom': { en: 'which secondary dominant do you hear?', es: '¿qué dominante secundario escuchas?' },
@@ -261,6 +279,12 @@ const translations = {
     en: 'Secondary dominants resolve clockwise (down a fifth). Tritone subs sit across the circle and resolve down a half step. Click any arrow to hear the full progression.',
     es: 'Los dominantes secundarios resuelven en sentido horario (bajando una quinta). Las sustituciones de tritono se ubican al otro lado del círculo y resuelven bajando un semitono. Haz clic en cualquier flecha para escuchar la progresión completa.',
   },
+
+  // Inversion names
+  'inversion.Root Position': { en: 'Root Position', es: 'Posición Fundamental' },
+  'inversion.1st Inversion': { en: '1st Inversion', es: '1ª Inversión' },
+  'inversion.2nd Inversion': { en: '2nd Inversion', es: '2ª Inversión' },
+  'inversion.3rd Inversion': { en: '3rd Inversion', es: '3ª Inversión' },
 
   // Sound category names (used in exercises and PlayingChanges)
   'sound.Mixolydian': { en: 'Mixolydian', es: 'Mixolidio' },
@@ -413,6 +437,13 @@ const translations = {
     es: 'Voiles — el sonido original de tonos enteros en la música occidental',
   },
 
+  // Auto mode
+  'exercise.autoMode': { en: 'Auto Mode', es: 'Modo Auto' },
+  'exercise.autoModeOn': { en: 'Auto Mode On', es: 'Modo Auto Sí' },
+  'exercise.autoModeOff': { en: 'Auto Mode Off', es: 'Modo Auto No' },
+  'exercise.autoThinking': { en: 'Think...', es: 'Piensa...' },
+  'exercise.autoRevealing': { en: 'Answer:', es: 'Respuesta:' },
+
   // Result messages with templates
   'result.incorrect': { en: 'Incorrect — the answer was', es: 'Incorrecto — la respuesta era' },
 } as const;
@@ -441,6 +472,13 @@ export function tChord(name: string, lang: Language): string {
 // Translate sound names
 export function tSound(name: string, lang: Language): string {
   const key = `sound.${name}` as TranslationKey;
+  if (key in translations) return t(key, lang);
+  return name;
+}
+
+// Translate inversion names
+export function tInversion(name: string, lang: Language): string {
+  const key = `inversion.${name}` as TranslationKey;
   if (key in translations) return t(key, lang);
   return name;
 }
