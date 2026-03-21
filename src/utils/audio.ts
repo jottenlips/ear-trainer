@@ -29,7 +29,13 @@ let clickInstrument: Soundfont.Player | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioContext) {
-    audioContext = new AudioContext();
+    // Use 'playback' category on iOS so audio plays even when the silent switch is on
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
+      ...(navigator.userAgent.match(/iPhone|iPad|iPod/) && {
+        // @ts-ignore – webkit-specific option recognized by Safari/iOS
+        webkitAudioCategory: 'playback',
+      }),
+    });
   }
   return audioContext;
 }
