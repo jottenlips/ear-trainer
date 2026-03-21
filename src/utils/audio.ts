@@ -169,6 +169,22 @@ export async function ensureAudioContext(): Promise<void> {
   }
 }
 
+/**
+ * After iOS Safari speech synthesis, the AudioContext may be running but
+ * effectively muted because SpeechSynthesis stole the audio session.
+ * Suspend + resume forces WebKit to re-acquire the audio session for Web Audio.
+ */
+export async function recoverAudioContext(): Promise<void> {
+  const ac = getAudioContext();
+  try {
+    await ac.suspend();
+    await ac.resume();
+  } catch {
+    // best-effort
+  }
+  unlockIOSSilentMode();
+}
+
 function soundfontUrl(name: string): string {
   return `${SOUNDFONT_BASE}/${name}-mp3.js`;
 }

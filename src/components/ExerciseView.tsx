@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import type { Difficulty, ExerciseType, InstrumentName, Question, ScoreState } from '../types';
 import { generateQuestion } from '../utils/questions';
-import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgression, playProgressionWithExtensionNote, playProgressionWithExtensions } from '../utils/audio';
+import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgression, playProgressionWithExtensionNote, playProgressionWithExtensions, recoverAudioContext } from '../utils/audio';
 import NotationDisplay from './NotationDisplay';
 import RhythmChoiceNotation from './RhythmChoiceNotation';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -305,6 +305,10 @@ export default function ExerciseView({ instrument }: Props) {
       await speakAnswer(getAnswerText(question));
       if (autoCancelledRef.current) return;
 
+      // Reclaim the audio session from speech synthesis so the next
+      // question's music playback works on iOS Safari
+      await recoverAudioContext();
+
       // Phase: pausing (2 seconds before next)
       setAutoPhase('pausing');
       await new Promise(r => { autoTimerRef.current = setTimeout(r, 2000); });
@@ -333,14 +337,16 @@ export default function ExerciseView({ instrument }: Props) {
     };
   }, []);
 
-  // iOS Safari keep-alive: periodically resume speechSynthesis so it stays active
+  // iOS Safari keep-alive: periodically resume speechSynthesis so it stays active.
+  // Only nudge while speech is actually in progress (speaking && paused) to avoid
+  // holding the audio session open when music should be playing.
   useEffect(() => {
     if (!autoMode || !('speechSynthesis' in window)) return;
     const interval = setInterval(() => {
-      if (window.speechSynthesis.paused) {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
-    }, 250);
+    }, 1000);
     return () => clearInterval(interval);
   }, [autoMode]);
 
