@@ -17,12 +17,33 @@ function speakAnswer(text: string): Promise<void> {
     }
     // Cancel any in-progress speech
     window.speechSynthesis.cancel();
+
+    let resolved = false;
+    const done = () => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeout);
+        resolve();
+      }
+    };
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.9;
     utterance.pitch = 0.6;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
+    utterance.onend = done;
+    utterance.onerror = done;
+
+    // Fallback timeout — some browsers/devices never fire onend
+    const timeout = setTimeout(done, 5000);
+
     window.speechSynthesis.speak(utterance);
+
+    // iOS workaround: speechSynthesis can pause in background, nudge it
+    setTimeout(() => {
+      if (!resolved && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 300);
   });
 }
 
