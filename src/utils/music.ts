@@ -957,24 +957,30 @@ function fillOneMeasure(
   const durations: string[] = [];
   const tripletGroups: [number, number][] = [];
   let remaining = beatsPerMeasure;
+  let beatPos = 0; // track position within the measure
 
   // Safety: max iterations to prevent infinite loop
   let safety = 100;
   while (remaining > 0.01 && safety-- > 0) {
+    // Only allow triplets on beat boundaries (not on the "+" of a beat)
+    const onBeat = Math.abs(beatPos - Math.round(beatPos)) < 0.01;
+
     // Triplets don't make sense in compound meters (6/8, 7/8) —
     // the natural subdivision is already triple
-    if (!isCompound && difficulty !== 'easy' && remaining >= 1 && Math.random() < (difficulty === 'hard' ? 0.2 : 0.1)) {
+    if (!isCompound && onBeat && difficulty !== 'easy' && remaining >= 1 && Math.random() < (difficulty === 'hard' ? 0.2 : 0.1)) {
       // Eighth-note triplet: 3 notes in 1 beat
       tripletGroups.push([durations.length, 3]);
       durations.push('8t', '8t', '8t');
       remaining -= 1;
+      beatPos += 1;
       continue;
     }
-    if (!isCompound && difficulty === 'hard' && remaining >= 2 && Math.random() < 0.06) {
+    if (!isCompound && onBeat && difficulty === 'hard' && remaining >= 2 && Math.random() < 0.06) {
       // Quarter-note triplet: 3 notes in 2 beats
       tripletGroups.push([durations.length, 3]);
       durations.push('qt', 'qt', 'qt');
       remaining -= 2;
+      beatPos += 2;
       continue;
     }
 
@@ -982,6 +988,7 @@ function fillOneMeasure(
     if (difficulty === 'hard' && remaining >= 1 && Math.random() < 0.15) {
       for (let i = 0; i < 4; i++) durations.push('16');
       remaining -= 1;
+      beatPos += 1;
       continue;
     }
 
@@ -990,15 +997,17 @@ function fillOneMeasure(
 
     if (candidates.length === 0) {
       // Fill remainder with the largest fitting standard duration
-      if (remaining >= 0.5 - 0.001) { durations.push('8'); remaining -= 0.5; }
-      else if (remaining >= 0.25 - 0.001) { durations.push('16'); remaining -= 0.25; }
+      if (remaining >= 0.5 - 0.001) { durations.push('8'); remaining -= 0.5; beatPos += 0.5; }
+      else if (remaining >= 0.25 - 0.001) { durations.push('16'); remaining -= 0.25; beatPos += 0.25; }
       else break;
       continue;
     }
 
     const dur = candidates[Math.floor(Math.random() * candidates.length)];
     durations.push(dur);
-    remaining -= durationToBeats(dur);
+    const beats = durationToBeats(dur);
+    remaining -= beats;
+    beatPos += beats;
   }
 
   // If floating point left a tiny remainder, ignore it
