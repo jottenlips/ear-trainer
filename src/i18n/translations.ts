@@ -437,6 +437,35 @@ const translations = {
     es: 'Voiles — el sonido original de tonos enteros en la música occidental',
   },
 
+  // Sight-Reading exercise
+  'exercise.sightReading': { en: 'Sight Reading', es: 'Lectura a Primera Vista' },
+  'exercise.sightReading.desc': {
+    en: 'Read random melodies from sheet music and play to check',
+    es: 'Lee melodías aleatorias de la partitura y reproduce para verificar',
+  },
+  'difficulty.sightReading.easy': {
+    en: '2 measures, 4/4 & 3/4, quarter & half notes, basic keys',
+    es: '2 compases, 4/4 y 3/4, negras y blancas, tonalidades básicas',
+  },
+  'difficulty.sightReading.medium': {
+    en: '3 measures, + 6/8 time, eighth notes & triplets',
+    es: '3 compases, + 6/8, corcheas y tresillos',
+  },
+  'difficulty.sightReading.hard': {
+    en: '4 measures, + 7/8 & 5/4, 16th notes, all triplet types',
+    es: '4 compases, + 7/8 y 5/4, semicorcheas, todos los tresillos',
+  },
+  'sightReading.key': { en: 'Key', es: 'Tonalidad' },
+  'sightReading.prompt': {
+    en: 'Sight-read this melody, then press Play to check',
+    es: 'Lee esta melodía a primera vista, luego presiona Reproducir para verificar',
+  },
+  'sightReading.play': { en: 'Play Melody', es: 'Reproducir Melodía' },
+  'sightReading.reveal': { en: 'Reveal Notes', es: 'Revelar Notas' },
+  'sightReading.newMelody': { en: 'New Melody', es: 'Nueva Melodía' },
+  'sightReading.measures': { en: 'measures', es: 'compases' },
+  'sightReading.harmonicColor': { en: 'Harmonic color', es: 'Color armónico' },
+
   // Auto mode
   'exercise.autoMode': { en: 'Auto Mode', es: 'Modo Auto' },
   'exercise.autoModeOn': { en: 'Auto Mode On', es: 'Modo Auto Sí' },

@@ -4,8 +4,11 @@ import confetti from 'canvas-confetti';
 import type { Difficulty, ExerciseType, InstrumentName, Question, ScoreState } from '../types';
 import { generateQuestion } from '../utils/questions';
 import { playInterval, playChord, playRhythmDrum, randomPolyVoices, playProgression, playProgressionWithExtensionNote, playProgressionWithExtensions, recoverAudioContext } from '../utils/audio';
+import { noteNameToMidi } from '../utils/music';
 import NotationDisplay from './NotationDisplay';
 import RhythmChoiceNotation from './RhythmChoiceNotation';
+import FretboardDiagram, { findAllGuitarVoicings } from './FretboardDiagram';
+import PianoRoll from './PianoRoll';
 import { useLanguage } from '../i18n/LanguageContext';
 import { t, tInterval, tChord, tInversion, tSound } from '../i18n/translations';
 
@@ -66,6 +69,16 @@ function extensionName(semitones: number): string {
 
 const SOUND_CHOICES = ['Altered', 'Mixolydian', 'Lydian Dominant', 'Whole Tone'];
 
+// Convert note name (e.g. "C#4", "Eb5") to pitch class (0-11)
+const NOTE_PC_MAP: Record<string, number> = {
+  'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5,
+  'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11,
+};
+function noteNameToPc(name: string): number {
+  const match = name.match(/^([A-G][#b]?)/);
+  return match ? (NOTE_PC_MAP[match[1]] ?? 0) : 0;
+}
+
 interface Props {
   instrument: InstrumentName;
   autoMode: boolean;
@@ -91,6 +104,7 @@ export default function ExerciseView({ instrument, autoMode, setAutoMode }: Prop
   const [metronome, setMetronome] = useState(true);
   const [sheetMusic, setSheetMusic] = useState(false);
   const [polyVoices, setPolyVoices] = useState<[number, number]>(randomPolyVoices());
+  const [voicingIdx, setVoicingIdx] = useState(0);
   // Part 2 state (sound / groove identification)
   const [soundSelected, setSoundSelected] = useState<string | null>(null);
   const [soundRevealed, setSoundRevealed] = useState(false);
@@ -116,6 +130,7 @@ export default function ExerciseView({ instrument, autoMode, setAutoMode }: Prop
     setGrooveSelected(null);
     setGrooveRevealed(false);
     setPolyVoices(randomPolyVoices());
+    setVoicingIdx(0);
     questionPlayedRef.current = false;
   }, [exerciseType, difficulty]);
 
@@ -438,21 +453,73 @@ export default function ExerciseView({ instrument, autoMode, setAutoMode }: Prop
 
       <h2 className="exercise-prompt">{translatedPrompt}</h2>
 
-      {/* Show notation only after reveal for intervals and chords */}
-      {exerciseType === 'intervals' && revealed && question.noteData && (
-        <NotationDisplay
-          noteData={question.noteData}
-          exerciseType={exerciseType}
-          revealed={revealed}
-        />
-      )}
-      {(exerciseType === 'chords' || exerciseType === 'inversions') && revealed && question.noteData && (
-        <NotationDisplay
-          noteData={question.noteData}
-          exerciseType={exerciseType}
-          revealed={revealed}
-        />
-      )}
+      {/* Show notation only after reveal for intervals, chords, inversions */}
+      {exerciseType === 'intervals' && revealed && question.noteData && (() => {
+        const midiNotes = question.noteData.notes.map(n => noteNameToMidi(n));
+        const pcs = new Set(question.noteData.notes.map(n => noteNameToPc(n)));
+        const rootPcVal = noteNameToPc(question.noteData.notes[0]);
+        return (
+          <>
+            <NotationDisplay
+              noteData={question.noteData}
+              exerciseType={exerciseType}
+              revealed={revealed}
+            />
+            <div className="exercise-instruments">
+              <PianoRoll
+                midiNotes={midiNotes}
+                chordPcs={pcs}
+                rootPc={rootPcVal}
+                simpleLabels
+              />
+              <FretboardDiagram
+                chordPcs={pcs}
+                rootPc={rootPcVal}
+                simpleLabels
+              />
+            </div>
+          </>
+        );
+      })()}
+      {(exerciseType === 'chords' || exerciseType === 'inversions') && revealed && question.noteData && (() => {
+        const midiNotes = question.noteData.notes.map(n => noteNameToMidi(n));
+        const pcs = new Set(question.noteData.notes.map(n => noteNameToPc(n)));
+        const rootPcVal = question.chordRootPc ?? noteNameToPc(question.noteData.notes[0]);
+        const pcsBassToTop = [...midiNotes].sort((a, b) => a - b).map(m => m % 12);
+        const allVoicings = findAllGuitarVoicings(pcsBassToTop);
+        const currentVoicing = allVoicings[voicingIdx % (allVoicings.length || 1)] ?? [];
+        return (
+          <>
+            <NotationDisplay
+              noteData={question.noteData}
+              exerciseType={exerciseType}
+              revealed={revealed}
+            />
+            <div className="exercise-instruments">
+              <PianoRoll
+                midiNotes={midiNotes}
+                chordPcs={pcs}
+                rootPc={rootPcVal}
+                simpleLabels
+              />
+              <FretboardDiagram
+                chordPcs={pcs}
+                rootPc={rootPcVal}
+                voicing={currentVoicing}
+                simpleLabels
+              />
+              {allVoicings.length > 1 && (
+                <button
+                  className="btn btn-secondary btn-position"
+                  onClick={() => setVoicingIdx(i => (i + 1) % allVoicings.length)}
+                >
+                  Next position ({(voicingIdx % allVoicings.length) + 1}/{allVoicings.length})
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* Secondary dominants: hide the sec dom and target until revealed */}
       {isSecDom && question.progressionLabels && (
@@ -706,6 +773,21 @@ export default function ExerciseView({ instrument, autoMode, setAutoMode }: Prop
                       ? `${t('result.incorrect', lang)} ${question.secDomChordName} → ${question.targetChordName}`
                       : `${t('result.incorrect', lang)} ${translateChoice(question.correctAnswer)}`}
               </p>
+              {/* Show chord name on reveal for chord quality and inversion exercises */}
+              {exerciseType === 'inversions' && question.inversionChordName && question.chordRootPc !== undefined && (() => {
+                const PC_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+                const rootName = PC_NAMES[question.chordRootPc!];
+                return (
+                  <p className="result-chord-name">
+                    {rootName} {question.inversionChordName} — {translateChoice(question.correctAnswer)}
+                  </p>
+                );
+              })()}
+              {exerciseType === 'chords' && question.promptRoot && (
+                <p className="result-chord-name">
+                  {question.promptRoot} {translateChoice(question.correctAnswer)}
+                </p>
+              )}
               {isSecDom && soundRevealed && question.secDomSound && (
                 <p className={`sound-category ${soundSelected === question.secDomSound ? 'correct' : 'incorrect'}`}>
                   {t('exercise.sound', lang)} {tSound(question.secDomSound, lang)}

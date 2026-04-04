@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { InstrumentName } from '../types';
 import type { SecondaryDominantInfo, SecDomSound } from '../utils/music';
 import {
@@ -11,6 +11,8 @@ import {
 } from '../utils/audio';
 import { useLanguage } from '../i18n/LanguageContext';
 import { t, tSound } from '../i18n/translations';
+import FretboardDiagram from './FretboardDiagram';
+import PianoRoll from './PianoRoll';
 
 interface Props {
   instrument: InstrumentName;
@@ -88,6 +90,16 @@ export default function CircleOfFifths({ instrument }: Props) {
   const [keyQuality, setKeyQuality] = useState<KeyQuality>('major');
   const { lang } = useLanguage();
 
+  // Track the currently sounding chord during playback
+  const [activeChordMidis, setActiveChordMidis] = useState<number[] | null>(null);
+  const [activeChordLabel, setActiveChordLabel] = useState<string>('');
+  const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => timerRefs.current.forEach(t => clearTimeout(t));
+  }, []);
+
   const keyName = NOTE_NAMES[keySemi];
   const scale = keyQuality === 'minor' ? MINOR_SCALE : MAJOR_SCALE;
 
@@ -97,7 +109,7 @@ export default function CircleOfFifths({ instrument }: Props) {
   // MIDI root for playback (keep in octave 3)
   const rootMidi = 48 + keySemi;
 
-  const handlePlay = async (secDom: SecondaryDominantInfo) => {
+  const handlePlay = useCallback(async (secDom: SecondaryDominantInfo) => {
     if (playing) return;
     const id = secDom.label;
     setPlaying(id);
@@ -109,15 +121,32 @@ export default function CircleOfFifths({ instrument }: Props) {
       prog.secDomIndex, prog.secDomExtensions, 75,
     );
 
+    // Schedule chord highlighting in sync with playback (2 beats per chord at 75 BPM)
+    const beatDuration = 60 / 75;
+    const chordDuration = beatDuration * 2 * 1000; // ms per chord
+    timerRefs.current = [];
+
+    for (let ci = 0; ci < prog.chords.length; ci++) {
+      const timer = setTimeout(() => {
+        setActiveChordMidis(prog.chords[ci]);
+        setActiveChordLabel(prog.chordNames?.[ci] || prog.labels?.[ci] || '');
+      }, ci * chordDuration);
+      timerRefs.current.push(timer);
+    }
+
     // After playback, change key to the target (respecting major/minor)
     const targetSemi = (keySemi + secDom.targetIntervals[0]) % 12;
     const targetQuality: KeyQuality = isTargetMinor(secDom) ? 'minor' : 'major';
-    setTimeout(() => {
+    const totalDuration = prog.chords.length * chordDuration;
+    const endTimer = setTimeout(() => {
       setPlaying(null);
+      setActiveChordMidis(null);
+      setActiveChordLabel('');
       setKeySemi(targetSemi);
       setKeyQuality(targetQuality);
-    }, 9800);
-  };
+    }, totalDuration + 200);
+    timerRefs.current.push(endTimer);
+  }, [playing, rootMidi, keySemi, instrument]);
 
   const R = 150;
   const NODE_R = 20;
@@ -307,6 +336,82 @@ export default function CircleOfFifths({ instrument }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Instrument diagrams */}
+      {(() => {
+        // Compute pitch class sets for current state
+        const scalePcs = new Set(scale.map(i => (keySemi + i) % 12));
+
+        // During playback, show the currently sounding chord
+        if (activeChordMidis) {
+          const pcs = new Set(activeChordMidis.map(m => m % 12));
+          const rootPc = activeChordMidis[0] % 12;
+          return (
+            <div className="cof-instruments">
+              <p className="cof-instrument-label cof-playing-label">
+                {activeChordLabel}
+              </p>
+              <div className="cof-piano-wrap">
+                <PianoRoll scalePcs={scalePcs} chordPcs={pcs} rootPc={rootPc} color="var(--primary)" />
+              </div>
+              <div className="cof-fretboard-wrap">
+                <FretboardDiagram scalePcs={scalePcs} chordPcs={pcs} rootPc={rootPc} color="var(--primary)" />
+              </div>
+            </div>
+          );
+        }
+
+        const hoveredSd = hoveredArrow ? ALL_SEC_DOMS.find(s => s.label === hoveredArrow) : null;
+        const activeSd = hoveredSd || (playing ? ALL_SEC_DOMS.find(s => s.label === playing) : null);
+
+        let chordPcs: Set<number> | undefined;
+        let chordRootPc: number | undefined;
+        let activeColor: string | undefined;
+        let chordTitle = '';
+
+        if (activeSd) {
+          chordRootPc = (keySemi + activeSd.dominantIntervals[0]) % 12;
+          chordPcs = new Set(activeSd.dominantIntervals.map(i => (keySemi + i) % 12));
+          // Add extensions
+          for (const ext of activeSd.extensions) {
+            chordPcs.add((chordRootPc + ext) % 12);
+          }
+          activeColor = SOUND_COLORS[activeSd.sound];
+          const rootName = NOTE_NAMES[chordRootPc];
+          chordTitle = `${rootName}7 (${activeSd.label}) — ${tSound(activeSd.sound, lang)}`;
+        }
+
+        return (
+          <div className="cof-instruments">
+            {chordTitle && (
+              <p className="cof-instrument-label" style={{ color: activeColor }}>
+                {chordTitle}
+              </p>
+            )}
+            {!chordTitle && (
+              <p className="cof-instrument-label">
+                {keyName} {keyQuality} {t('cof.scale' as any, lang) || 'scale'}
+              </p>
+            )}
+            <div className="cof-piano-wrap">
+              <PianoRoll
+                scalePcs={scalePcs}
+                chordPcs={chordPcs}
+                rootPc={chordRootPc}
+                color={activeColor}
+              />
+            </div>
+            <div className="cof-fretboard-wrap">
+              <FretboardDiagram
+                scalePcs={scalePcs}
+                chordPcs={chordPcs}
+                rootPc={chordRootPc}
+                color={activeColor}
+              />
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

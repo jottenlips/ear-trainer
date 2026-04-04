@@ -1,5 +1,5 @@
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type ExerciseType = 'intervals' | 'chords' | 'inversions' | 'rhythm' | 'secondary-dominants';
+export type ExerciseType = 'intervals' | 'chords' | 'inversions' | 'rhythm' | 'secondary-dominants' | 'sight-reading';
 export type InstrumentName = 'piano' | 'guitar' | 'strings' | 'brass' | 'organ' | 'saxophone' | 'flute' | 'violin' | 'cello' | 'marimba';
 
 export interface Note {
@@ -63,6 +63,7 @@ export interface Question {
   grooveName?: string;             // for rhythm: named groove/polyrhythm
   grooveChoices?: string[];        // choices for groove identification question
   inversionChordName?: string;     // for inversions: the chord quality name
+  chordRootPc?: number;            // pitch class of the chord root (0-11)
 }
 
 export interface NoteData {

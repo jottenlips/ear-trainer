@@ -41,6 +41,12 @@ const EXERCISES: { type: ExerciseType; titleKey: TranslationKey; descKey: Transl
     descKey: 'exercise.secondaryDominants.desc',
     icon: 'V7/',
   },
+  {
+    type: 'sight-reading',
+    titleKey: 'exercise.sightReading',
+    descKey: 'exercise.sightReading.desc',
+    icon: '🎼',
+  },
 ];
 
 const DIFFICULTIES: { value: Difficulty; labelKey: TranslationKey; color: string }[] = [
@@ -57,7 +63,11 @@ export default function HomeScreen({ instrument }: Props) {
   const handleStart = async (difficulty: Difficulty) => {
     await ensureAudioContext();
     if (selectedType) {
-      navigate(`/exercise/${selectedType}/${difficulty}`);
+      if (selectedType === 'sight-reading') {
+        navigate(`/sight-reading/${difficulty}`);
+      } else {
+        navigate(`/exercise/${selectedType}/${difficulty}`);
+      }
     }
   };
 
@@ -148,6 +158,13 @@ export default function HomeScreen({ instrument }: Props) {
                 <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.secdom.easy', lang)}</p>
                 <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.secdom.medium', lang)}</p>
                 <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.secdom.hard', lang)}</p>
+              </>
+            )}
+            {selectedType === 'sight-reading' && (
+              <>
+                <p><strong>{t('difficulty.easy', lang)}:</strong> {t('difficulty.sightReading.easy' as TranslationKey, lang)}</p>
+                <p><strong>{t('difficulty.medium', lang)}:</strong> {t('difficulty.sightReading.medium' as TranslationKey, lang)}</p>
+                <p><strong>{t('difficulty.hard', lang)}:</strong> {t('difficulty.sightReading.hard' as TranslationKey, lang)}</p>
               </>
             )}
           </div>

@@ -5,6 +5,7 @@ import { isIOSDevice, detectIOSSilentMode } from './utils/audio';
 import HomeScreen from './components/HomeScreen';
 import ExerciseView from './components/ExerciseView';
 import PlayingChanges from './components/PlayingChanges';
+import SightReadingView from './components/SightReadingView';
 import Settings from './components/Settings';
 import './App.css';
 
@@ -47,6 +48,10 @@ function App() {
         <Route
           path="/exercise/:type/:difficulty"
           element={<ExerciseView instrument={instrument} autoMode={autoMode} setAutoMode={setAutoMode} />}
+        />
+        <Route
+          path="/sight-reading/:difficulty"
+          element={<SightReadingView instrument={instrument} />}
         />
         <Route
           path="/playing-changes"

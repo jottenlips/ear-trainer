@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, Stave, StaveNote, Voice, Formatter, Dot, Tuplet } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, Dot, Tuplet, Accidental } from 'vexflow';
 import type { NoteData, ExerciseType } from '../types';
 
 interface Props {
@@ -41,6 +41,14 @@ export default function NotationDisplay({ noteData, exerciseType, revealed }: Pr
         const note = new StaveNote({
           keys: keyGroup,
           duration: baseDuration,
+        });
+
+        // Add accidentals for sharps/flats
+        keyGroup.forEach((key, keyIdx) => {
+          const match = key.match(/^[a-g](#{1,2}|b{1,2})\//);
+          if (match) {
+            note.addModifier(new Accidental(match[1]), keyIdx);
+          }
         });
 
         if (isDotted) {

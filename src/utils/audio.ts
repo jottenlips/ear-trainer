@@ -465,6 +465,97 @@ export async function playProgressionWithExtensions(
   }
 }
 
+// Play a melody (array of {midi, duration} notes sequentially)
+// Includes a metronome click on every beat throughout the melody
+// Optional chordMidis: one array of MIDI notes per measure, played as block chords
+export async function playMelody(
+  notes: { midi: number; duration: string }[],
+  instrument: InstrumentName,
+  bpm: number = 90,
+  countIn: boolean = true,
+  timeSignature?: string,
+  chordMidis?: number[][]
+): Promise<void> {
+  await ensureAudioContext();
+  const [player, click] = await Promise.all([
+    loadInstrument(instrument),
+    getClickInstrument(),
+  ]);
+  const ac = getAudioContext();
+  const beatDuration = 60 / bpm;
+  let time = ac.currentTime;
+
+  const isCompound = timeSignature != null && timeSignature.endsWith('/8');
+  // For x/8 time sigs, each "beat" in our system is an eighth note
+  const clickInterval = isCompound ? beatDuration * 0.5 : beatDuration;
+
+  // Determine beats per measure for accent pattern
+  const tsBeats = timeSignature === '6/8' ? 6
+    : timeSignature === '7/8' ? 7
+    : timeSignature === '5/4' ? 5
+    : timeSignature === '3/4' ? 3
+    : 4;
+
+  // For compound meters, accent every 3 eighth notes (e.g. 6/8 = 2 groups of 3)
+  // For 7/8, accent pattern is typically 2+2+3 or 3+2+2
+  const getAccent = (beatIndex: number): boolean => {
+    if (timeSignature === '6/8') return beatIndex % 3 === 0;
+    if (timeSignature === '7/8') {
+      // 2+2+3 grouping: accents on beats 0, 2, 4
+      return beatIndex === 0 || beatIndex === 2 || beatIndex === 4;
+    }
+    // Simple meters: accent beat 0
+    return beatIndex === 0;
+  };
+
+  // Count-in
+  if (countIn) {
+    for (let i = 0; i < tsBeats; i++) {
+      const accent = getAccent(i);
+      click.play(accent ? 'G5' : 'C5', time, { duration: 0.05, gain: accent ? 0.6 : 0.35 });
+      time += clickInterval;
+    }
+  }
+
+  const melodyStart = time;
+
+  // Beats per measure in quarter-note units (for chord scheduling)
+  const beatsPerMeasure = isCompound ? tsBeats * 0.5 : tsBeats;
+  const measureDuration = beatsPerMeasure * beatDuration;
+
+  // Schedule block chords at the start of each measure
+  if (chordMidis && chordMidis.length > 0) {
+    for (let m = 0; m < chordMidis.length; m++) {
+      const chordTime = melodyStart + m * measureDuration;
+      for (const midi of chordMidis[m]) {
+        const noteName = midiToNoteName(midi);
+        player.play(noteName, chordTime, { duration: measureDuration * 0.9, gain: 0.35 });
+      }
+    }
+  }
+
+  // Play notes
+  for (const note of notes) {
+    const noteName = midiToNoteName(note.midi);
+    const beats = durationToBeats(note.duration);
+    const seconds = beats * beatDuration;
+    player.play(noteName, time, { duration: seconds * 0.85, gain: 0.75 });
+    time += seconds;
+  }
+
+  const melodyEnd = time;
+
+  // Schedule metronome clicks throughout the melody
+  let clickTime = melodyStart;
+  let beatInMeasure = 0;
+  while (clickTime < melodyEnd - 0.01) {
+    const accent = getAccent(beatInMeasure);
+    click.play(accent ? 'G5' : 'C5', clickTime, { duration: 0.05, gain: accent ? 0.45 : 0.25 });
+    clickTime += clickInterval;
+    beatInMeasure = (beatInMeasure + 1) % tsBeats;
+  }
+}
+
 // Preload an instrument so it's ready when needed
 export async function preloadInstrument(instrument: InstrumentName): Promise<void> {
   await ensureAudioContext();

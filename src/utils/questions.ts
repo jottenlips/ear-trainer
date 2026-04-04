@@ -75,6 +75,7 @@ export function generateChordQuestion(difficulty: Difficulty): Question {
       keys: [chordKeys],
       vexDurations: ['w'],
     },
+    chordRootPc: rootMidi % 12,
   };
 }
 
@@ -202,6 +203,9 @@ export function generateInversionQuestion(difficulty: Difficulty): Question {
   const bassNote = midiToNoteName(Math.min(...chordNotes));
   const bassLetter = bassNote.replace(/\d+$/, '');
 
+  // Root PC: bass note + rootInterval gives the chord root
+  const chordRootPc = (bassMidi + correct.rootInterval) % 12;
+
   return {
     type: 'inversions',
     prompt: `${correct.chordName} chord — what inversion? (Bass: ${bassLetter})`,
@@ -215,6 +219,7 @@ export function generateInversionQuestion(difficulty: Difficulty): Question {
       vexDurations: ['w'],
     },
     inversionChordName: correct.chordName,
+    chordRootPc,
   };
 }
 
@@ -225,5 +230,6 @@ export function generateQuestion(type: ExerciseType, difficulty: Difficulty): Qu
     case 'inversions': return generateInversionQuestion(difficulty);
     case 'rhythm': return generateRhythmQuestion(difficulty);
     case 'secondary-dominants': return generateSecondaryDominantQuestion(difficulty);
+    case 'sight-reading': return generateIntervalQuestion(difficulty); // sight-reading uses its own view
   }
 }
