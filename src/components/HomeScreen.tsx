@@ -106,6 +106,16 @@ export default function HomeScreen({ instrument }: Props) {
         </Link>
       </div>
 
+      <div className="pocket-home-link">
+        <Link to="/intonation" className="pocket-home-card" onClick={() => ensureAudioContext()}>
+          <span className="pocket-home-icon">🎤</span>
+          <div>
+            <h3>{t('intonation.title' as TranslationKey, lang)}</h3>
+            <p>{t('intonation.desc' as TranslationKey, lang)}</p>
+          </div>
+        </Link>
+      </div>
+
       <div className="playing-changes-link">
         <Link to="/playing-changes" className="btn btn-playing-changes">
           {t('playingChanges', lang)}

@@ -1841,6 +1841,336 @@ body {
   margin-top: 0.25rem;
 }
 
+/* === Intonation === */
+.intonation-key-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.intonation-scale {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.intonation-scale-note {
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.intonation-scale-note:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.intonation-scale-note:active {
+  transform: scale(0.92);
+}
+
+.intonation-scale-note.root {
+  color: var(--text);
+  font-weight: 700;
+  border-color: var(--border);
+}
+
+.intonation-scale-note.singing {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.15);
+}
+
+.intonation-progression {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.intonation-chord {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.intonation-chord.current {
+  border-color: var(--primary);
+  background: #e8f5e9;
+  transform: scale(1.08);
+}
+
+.intonation-chord-roman {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.intonation-chord-name {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.intonation-pitch-display {
+  text-align: center;
+  margin-bottom: 0.75rem;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.intonation-detected-note {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.intonation-cents {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.intonation-cents.sharp {
+  color: var(--warning);
+}
+
+.intonation-cents.flat {
+  color: #2196f3;
+}
+
+.intonation-waiting {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.intonation-waiting-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.intonation-detected-note.rating-perfect { color: #2d5016; }
+.intonation-detected-note.rating-great { color: #4caf50; }
+.intonation-detected-note.rating-good { color: #ff9800; }
+.intonation-detected-note.rating-off { color: #c0392b; }
+
+.intonation-meter {
+  position: relative;
+  margin: 0 auto 1rem;
+  width: 100%;
+  max-width: 300px;
+  height: 52px;
+}
+
+.intonation-meter-zones {
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.intonation-meter-zone {
+  flex: 1;
+}
+
+.intonation-meter-zone.zone-perfect { background: #2d5016; }
+.intonation-meter-zone.zone-great { background: #4caf50; }
+.intonation-meter-zone.zone-good { background: #ff9800; }
+.intonation-meter-zone.zone-off { background: #e0e0e0; }
+
+.intonation-meter-needle {
+  position: absolute;
+  top: -4px;
+  width: 5px;
+  height: 40px;
+  background: var(--text);
+  border-radius: 3px;
+  transform: translateX(-50%);
+  transition: left 0.18s ease-out, opacity 0.3s ease;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+
+.intonation-tips-btn {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
+}
+
+.intonation-tips-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.intonation-tips-modal {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.intonation-tips-modal h3 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.intonation-tips-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+}
+
+.intonation-tips-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.intonation-tips-list li {
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.intonation-phase-label {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+
+.intonation-melody-notes {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.intonation-melody-note {
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.12s ease;
+}
+
+.intonation-melody-note.bar-start {
+  margin-left: 0.4rem;
+}
+
+.intonation-melody-note.bar-start:first-child {
+  margin-left: 0;
+}
+
+.intonation-melody-note.active {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.15);
+}
+
+.intonation-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.intonation-new-melody {
+  font-size: 0.9rem;
+  padding: 0.5rem 1.2rem;
+}
+
+.intonation-meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  padding: 0 2px;
+}
+
+.intonation-prog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.4rem;
+}
+
+.intonation-prog-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.intonation-prog-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.intonation-prog-name {
+  font-weight: 600;
+}
+
+.intonation-prog-roman {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
 /* === Pocket Mobile === */
 @media (max-width: 600px) {
   .pocket-dots {

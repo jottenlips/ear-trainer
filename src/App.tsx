@@ -7,6 +7,7 @@ import ExerciseView from './components/ExerciseView';
 import PlayingChanges from './components/PlayingChanges';
 import SightReadingView from './components/SightReadingView';
 import PocketView from './components/PocketView';
+import IntonationView from './components/IntonationView';
 import Settings from './components/Settings';
 import './App.css';
 
@@ -55,6 +56,7 @@ function App() {
           element={<SightReadingView instrument={instrument} />}
         />
         <Route path="/pocket" element={<PocketView />} />
+        <Route path="/intonation" element={<IntonationView />} />
         <Route
           path="/playing-changes"
           element={<PlayingChanges instrument={instrument} />}
