@@ -473,6 +473,47 @@ const translations = {
   'exercise.autoThinking': { en: 'Think...', es: 'Piensa...' },
   'exercise.autoRevealing': { en: 'Answer:', es: 'Respuesta:' },
 
+  // Pocket
+  'pocket.title': { en: 'Pocket', es: 'Pocket' },
+  'pocket.subtitle': { en: 'Play in time with the metronome', es: 'Toca a tiempo con el metrónomo' },
+  'pocket.desc': { en: 'Play in time — are you rushing or dragging?', es: 'Toca a tiempo — ¿apuras o arrastras?' },
+  'pocket.warning': {
+    en: '🎧 Wear headphones so the click won\'t interfere with the microphone',
+    es: '🎧 Usa audífonos para que el clic no interfiera con el micrófono',
+  },
+  'pocket.micError': {
+    en: 'Microphone access is required. Please allow mic access and try again.',
+    es: 'Se requiere acceso al micrófono. Permite el acceso y vuelve a intentarlo.',
+  },
+  'pocket.bpm': { en: 'BPM', es: 'BPM' },
+  'pocket.swing': { en: 'Swing', es: 'Swing' },
+  'pocket.straight': { en: 'Straight', es: 'Recto' },
+  'pocket.light': { en: 'Light', es: 'Ligero' },
+  'pocket.triplet': { en: 'Triplet', es: 'Tresillo' },
+  'pocket.subdivision': { en: 'Subdivision', es: 'Subdivisión' },
+  'pocket.sensitivity': { en: 'Mic Sensitivity', es: 'Sensibilidad del Mic' },
+  'pocket.sub.quarter': { en: '♩', es: '♩' },
+  'pocket.sub.eighth': { en: '♪♪', es: '♪♪' },
+  'pocket.sub.triplet': { en: '♪³', es: '♪³' },
+  'pocket.sub.sixteenth': { en: '♬', es: '♬' },
+  'pocket.toleranceHint': {
+    en: 'Extra notes between beats are ignored — play fills, ghost notes, whatever you want',
+    es: 'Las notas extra entre pulsos se ignoran — toca fills, notas fantasma, lo que quieras',
+  },
+  'pocket.start': { en: '▶ Start', es: '▶ Iniciar' },
+  'pocket.stop': { en: '■ Stop', es: '■ Detener' },
+  'pocket.countIn': { en: 'Count-in...', es: 'Cuenta...' },
+  'pocket.streak': { en: 'Streak', es: 'Racha' },
+  'pocket.accuracy': { en: 'Accuracy', es: 'Precisión' },
+  'pocket.tendency': { en: 'Tendency', es: 'Tendencia' },
+  'pocket.inThePocket': { en: 'In the pocket!', es: '¡En el bolsillo!' },
+  'pocket.rushing': { en: 'Rushing', es: 'Apurando' },
+  'pocket.dragging': { en: 'Dragging', es: 'Arrastrando' },
+  'pocket.sessionSummary': { en: 'Session Summary', es: 'Resumen de Sesión' },
+  'pocket.finalScore': { en: 'Final Score', es: 'Puntaje Final' },
+  'pocket.maxStreak': { en: 'Max Streak', es: 'Racha Máxima' },
+  'pocket.avgOffset': { en: 'Avg. Offset', es: 'Desfase Prom.' },
+
   // Result messages with templates
   'result.incorrect': { en: 'Incorrect — the answer was', es: 'Incorrecto — la respuesta era' },
 } as const;

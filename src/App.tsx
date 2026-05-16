@@ -6,6 +6,7 @@ import HomeScreen from './components/HomeScreen';
 import ExerciseView from './components/ExerciseView';
 import PlayingChanges from './components/PlayingChanges';
 import SightReadingView from './components/SightReadingView';
+import PocketView from './components/PocketView';
 import Settings from './components/Settings';
 import './App.css';
 
@@ -53,6 +54,7 @@ function App() {
           path="/sight-reading/:difficulty"
           element={<SightReadingView instrument={instrument} />}
         />
+        <Route path="/pocket" element={<PocketView />} />
         <Route
           path="/playing-changes"
           element={<PlayingChanges instrument={instrument} />}
